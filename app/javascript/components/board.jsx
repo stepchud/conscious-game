@@ -1,26 +1,24 @@
-class Dice {
-  constructor(sides=10, zero=true) {
-    this.sides = sides;
-    // this.zero = zero;
-    this.basis = zero ? 0 : 1;
-  }
+export const Dice = (sides=10, zero=true) => {
+  const basis = zero ? 0 : 1
 
-  roll() {
-    this.value = Math.floor(Math.random() * this.sides) + this.basis;
-    return this.value;
-  }
+  const roll = () => Math.floor(Math.random() * sides) + basis;
+  const opposite = (value) => sides + basis - value;
 
-  opposite() {
-    return this.sides - this.value + this.basis;
-  }
+  return { roll, opposite }
 }
 
-class GameBoard {
-  const SPACES = "*AFAIFCACFFCIAACFFICAFACCFICFAAFCCLAFICCFAFICAFCC" +
-    "IAACFFICAICAFFICCAAIFCLLCFFIAAICCFIACIFACIAFICAIL" +
-    "FCAACICCFAICFFACICAIFCCFICACFALLCCFACCCFICFCAICCI" +
-    "AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF" +
-    "CCIACFACILCAFFCCAIAFCCIACFFICCCAICCFCALLCCAAFCIC*";
+export const tenSides = Dice()
+export const sixSides = Dice(6, false)
+
+export const SPACES = (
+  '*AFAIFCACFFCIAACFFICAFACCFICFAAFCCLAFICCFAFICAFCC' +
+  'IAACFFICAICAFFICCAAIFCLLCFFIAAICCFIACIFACIAFICAIL' +
+  'FCAACICCFAICFFACICAIFCCFICACFALLCCFACCCFICFCAICCI' +
+  'AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF' +
+  'CCIACFACILCAFFCCAIAFCCIACFFICCCAICCFCALLCCAAFCIC*'
+)
+
+export class GameBoard {
 
   constructor(spaces = SPACES) {
     this.game_dice = new Dice();

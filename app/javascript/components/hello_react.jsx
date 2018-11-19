@@ -5,24 +5,46 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import PropTypes from 'prop-types'
+import { createStore } from 'redux'
+import { sixSides } from 'components/board'
 
-const HelloDice = props => (
-  <div>Dice={props.value}</div>
-)
+const dice = (state = sixSides.roll(), action) => {
+  console.log(`state: ${state}, action: ${action.type}`)
+  switch(action.type) {
+    case 'ROLL_DICE':
+      return sixSides.roll()
+
+    default:
+      return state
+  }
+}
+
+const store = createStore(dice)
+
+const HelloDice = () => {
+  return (
+    <div>
+      Dice: {store.getState()}
+      <button onClick={() => store.dispatch({ type: 'ROLL_DICE' })}>Roll Dice</button>
+    </div>
+  )
+}
 
 HelloDice.defaultProps = {
-  value: 0
 }
 
 HelloDice.propTypes = {
-  value: PropTypes.integer
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+const render = () => {
   ReactDOM.render(
-    <HelloDice value="1" />,
-    document.body.appendChild(document.createElement('div')),
+    <HelloDice />,
+    document.getElementById('hello-react')
   )
-})
+}
+
+store.subscribe(render)
+
+document.addEventListener('DOMContentLoaded', () => { render() })
 
 export default HelloDice
