@@ -6,17 +6,48 @@ export const Dice = (sides=10, zero=true) => {
 
   return { roll, opposite }
 }
-
 export const tenSides = Dice()
 export const sixSides = Dice(6, false)
 
-export const SPACES = (
+const SPACES =
   '*AFAIFCACFFCIAACFFICAFACCFICFAAFCCLAFICCFAFICAFCC' +
-  'IAACFFICAICAFFICCAAIFCLLCFFIAAICCFIACIFACIAFICAIL' +
-  'FCAACICCFAICFFACICAIFCCFICACFALLCCFACCCFICFCAICCI' +
-  'AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF' +
+  //'IAACFFICAICAFFICCAAIFCLLCFFIAAICCFIACIFACIAFICAIL' +
+  //'FCAACICCFAICFFACICAIFCCFICACFALLCCFACCCFICFCAICCI' +
+  //'AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF' +
   'CCIACFACILCAFFCCAIAFCCIACFFICCCAICCFCALLCCAAFCIC*'
-)
+export const BoardSpaces = (initSpaces=SPACES) => {
+  let spaces = initSpaces
+
+  const spaceMap = {
+  '*': 'Wild',
+  'F': 'Food',
+  'A': 'Air',
+  'I': 'Impression',
+  'C': 'Card',
+  'L': 'Law',
+  'D': 'Decay',
+  }
+  const name = (letter) => spaceMap[letter]
+  const getSpaces = () => spaces
+
+  const before = (position) => spaces.slice(0, position)
+  const at = (position) => spaces.slice(position, position+1)
+  const after = (position) => spaces.slice(position+1, spaces.length)
+  const split = (position) => ({
+    before: before(position),
+    at: at(position),
+    after: after(position)
+  })
+
+  const convertToDeath = () => {
+    spaces = spaces.replace(/L/g, '*');
+    spaces = spaces.replace(/C/g, 'D');
+    spaces = spaces.split("").reverse().join("");
+    return spaces
+  }
+
+  return { name, getSpaces, split, convertToDeath }
+}
 
 export class GameBoard {
 
