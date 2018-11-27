@@ -11,10 +11,11 @@ export const sixSides = Dice(6, false)
 
 const SPACES =
   '*AFAIFCACFFCIAACFFICAFACCFICFAAFCCLAFICCFAFICAFCC' +
-  //'IAACFFICAICAFFICCAAIFCLLCFFIAAICCFIACIFACIAFICAIL' +
-  //'FCAACICCFAICFFACICAIFCCFICACFALLCCFACCCFICFCAICCI' +
-  //'AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF' +
+  'IAACFFICAICAFFICCAAIFCLLCFFIAAICCFIACIFACIAFICAIL' +
+  'FCAACICCFAICFFACICAIFCCFICACFALLCCFACCCFICFCAICCI' +
+  'AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF' +
   'CCIACFACILCAFFCCAIAFCCIACFFICCCAICCFCALLCCAAFCIC*'
+
 export const BoardSpaces = (initSpaces=SPACES) => {
   let spaces = initSpaces
 
@@ -68,13 +69,5 @@ export class GameBoard {
 
   reverseBoard() {
     this.spaces = this.spaces.split("").reverse().join("");
-  }
-
-  drawCard() {
-    return this.poc_deck.drawCard();
-  }
-
-  drawLawCard() {
-    return this.law_deck.drawCard();
   }
 }
