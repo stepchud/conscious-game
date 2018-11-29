@@ -14,43 +14,39 @@ const CardSuitMap = {
     'S': 'Spades'
 }
 
-export const Deck = () => {
-  const generateDeck = () => {
-    let deck = []
-    for (let suit of ['D','C','H','S']){
-			for (let j=2; j<=4; j++) {
-        _(4).times(()=>{deck.push(j+suit)})
-			}
-			for (let j=5; j<=7; j++) {
-        _(3).times(()=>{deck.push(j+suit)})
-			}
-			for (let j=8; j<=10; j++) {
-        _(2).times(()=>{deck.push(j+suit)})
-			}
+export const generateDeck = () => {
+  let deck = []
+  for (let suit of ['D','C','H','S']){
+    for (let j=2; j<=4; j++) {
+      _(4).times(()=>{deck.push(j+suit)})
     }
-    _(4).times(deck.push('JS'))
-    _(3).times(deck.push('JD'))
-    _(2).times(deck.push('JC'))
-    _(2).times(deck.push('QD'))
-    deck.push('JH')
-    deck.push('QC')
-    return shuffle(deck)
+    for (let j=5; j<=7; j++) {
+      _(3).times(()=>{deck.push(j+suit)})
+    }
+    for (let j=8; j<=10; j++) {
+      _(2).times(()=>{deck.push(j+suit)})
+    }
   }
+  _(4).times(deck.push('JS'))
+  _(3).times(deck.push('JD'))
+  _(2).times(deck.push('JC'))
+  _(2).times(deck.push('QD'))
+  deck.push('JH')
+  deck.push('QC')
+  return shuffle(deck)
+}
 
-  const shuffle = (deck, num=10) => {
-    const deckSize = deck.length
-    const newDeck = deck
-    let rand =  _.random(deckSize-1)
-    _.times(num, ()=>{
-      for(let i=0; i<deckSize; i++){
-        [newDeck[i], newDeck[rand]] = [newDeck[rand], newDeck[i]];
-        rand = _.random(deckSize-1)
-      }
-    });
-    return newDeck
-  }
-
-  return { generateDeck, shuffle }
+export const shuffle = (deck, num=10) => {
+  const deckSize = deck.length
+  const newDeck = [...deck]
+  let rand =  _.random(deckSize-1)
+  _.times(num, ()=>{
+    for(let i=0; i<deckSize; i++){
+      [newDeck[i], newDeck[rand]] = [newDeck[rand], newDeck[i]];
+      rand = _.random(deckSize-1)
+    }
+  });
+  return newDeck
 }
 
 const LawDeck = () => {
