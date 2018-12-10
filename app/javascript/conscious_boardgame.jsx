@@ -5,69 +5,11 @@ import { createStore, combineReducers } from 'redux'
 import { sixSides } from 'components/dice'
 import * as Board from 'components/board'
 import * as Deck from 'components/cards'
-import { InitialState as InitialFoodDiagram } from 'components/parts'
+import cards from 'reducers/cards'
+import board from 'reducers/board'
+import foodDiagram from 'reducers/parts'
 
 const dice = sixSides
-const cards = ( state = {}, action ) => {
-  const {
-    deck,
-    discards,
-    hand
-  } = state
-  switch(action.type) {
-    case 'DRAW_CARD':
-      let nextDeck, nextDiscards
-      if (_.isEmpty(deck)) {
-        nextDeck = Deck.shuffle(discards)
-        nextDiscards = []
-      } else {
-        nextDeck = deck
-        nextDiscards = discards
-      }
-      const card = nextDeck[0]
-      return {
-        deck: nextDeck.slice(1),
-        discards: nextDiscards,
-        hand: hand.concat(card)
-      }
-    case 'DISCARD':
-      const pos = hand.indexOf(action.card)
-      const nextHand = [
-        ...hand.slice(0, pos),
-        ...hand.slice(pos+1)
-      ]
-      console.log(`discard: ${action.card}, ${pos}, ${nextHand}`)
-      return {
-        deck: deck,
-        discards: discards.concat(action.card),
-        hand: nextHand
-      }
-    default:
-      return state
-  }
-}
-const board = ( state = {}, action ) => {
-  switch(action.type) {
-    case 'ROLL_DICE':
-      const roll = sixSides.roll()
-      if (state.position + roll >= state.spaces.length) {
-        return {
-          roll,
-          spaces: Board.convertToDeath(state.spaces),
-          position: 0
-        }
-      } else {
-        return {
-          ...state,
-          position: state.position + roll,
-          roll
-        }
-      }
-
-    default:
-      return state
-  }
-}
 
 const initialState = {
   cards: {
@@ -80,15 +22,20 @@ const initialState = {
     position: 0,
     spaces: Board.initialSpaces
   },
-  fd: InitialFoodDiagram,
 }
-const game = combineReducers({ cards, board })
+const game = combineReducers({ cards, board, foodDiagram })
 const store = createStore(game, initialState)
 
 const onRollClick = () => store.dispatch({ type: 'ROLL_DICE' })
 const onDrawCard = () => store.dispatch({ type: 'DRAW_CARD' })
 const onDiscard = (card) => store.dispatch({ type: 'DISCARD', card: card })
 const onDrawLawCard = () => store.dispatch({ type: 'DRAW_LAW_CARD' })
+const onEatFood = () => store.dispatch({ type: 'EAT_FOOD' })
+const onBreatheAir = () => store.dispatch({ type: 'BREATHE_AIR' })
+const onTakeImpression = () => store.dispatch({ type: 'TAKE_IMPRESSION' })
+const onSelfRemember = () => store.dispatch({ type: 'SELF_REMEMBER' })
+const onTransformEmotions = () => store.dispatch({ type: 'TRANSFORM_EMOTIONS' })
+const onAdvanceFoodDiagram = () => store.dispatch({ type: 'ADVANCE_FOOD_DIAGRAM' })
 
 const Card = ({
   card,
@@ -127,16 +74,38 @@ const CardHand = ({
     </div>
   )
 }
+const FoodDiagram = ({
+  current,
+  enter
+}) => {
+  return (
+    <pre>
+      <h3>F:[{current.food[0]}][{current.food[1]}][{current.food[2]}][{current.food[3]}][{current.food[4]}][{current.food[5]}][{current.food[6]}][{current.food[7]}]</h3>
+      <h3>---{enter.food[0]}--{enter.food[1]}--{enter.food[2]}--{enter.food[3]}--{enter.food[4]}--{enter.food[5]}--{enter.food[6]}--{enter.food[7]}--</h3>
+      <h3>A:[X][X][{current.air[0]}][{current.air[1]}][{current.air[2]}][{current.air[3]}][{current.air[4]}][{current.air[5]}]</h3>
+      <h3>---{enter.air[0]}--{enter.air[1]}--{enter.air[2]}--{enter.air[3]}--{enter.air[4]}--{enter.air[5]}--</h3>
+      <h3>I:[X][X][X][X][{current.impressions[0]}][{current.impressions[1]}][{current.impressions[2]}][{current.impressions[3]}]</h3>
+      <h3>---{enter.impressions[0]}--{enter.impressions[1]}--{enter.impressions[2]}--{enter.impressions[3]}--</h3>
+    </pre>
+  )
+}
 const ConsciousBoardgame = () => {
-  const { cards, board } = store.getState()
+  const { cards, board, foodDiagram } = store.getState()
   return (
     <div>
       <div className="actions">
         <button onClick={onRollClick}>Roll Dice</button>
         <button onClick={onDrawCard}>Draw Card</button>
+        <button onClick={onEatFood}>Food</button>
+        <button onClick={onBreatheAir}>Air</button>
+        <button onClick={onTakeImpression}>Impressions</button>
+        <button onClick={onSelfRemember}>Self-Remember</button>
+        <button onClick={onTransformEmotions}>Transform-Emotions</button>
+        <button onClick={onAdvanceFoodDiagram}>Digest Food</button>
       </div>
       <BoardSpaces {...board} />
       <CardHand {...cards} />
+      <FoodDiagram {...foodDiagram} />
     </div>
   )
 }
