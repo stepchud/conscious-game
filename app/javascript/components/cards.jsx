@@ -1,4 +1,4 @@
-import _ from 'lodash'
+import {times, random, partition } from 'lodash'
 
 const CardRankMap = {
     'A': ['Ace',  14],
@@ -16,21 +16,21 @@ const CardSuitMap = {
 
 export const generateDeck = () => {
   let deck = []
-  for (let suit of ['D','C','H','S']){
+  for (let suit of ['D','C','H','S']) {
     for (let j=2; j<=4; j++) {
-      _(4).times(()=>{deck.push(j+suit)})
+      times(4, ()=>{deck.push(j+suit)})
     }
     for (let j=5; j<=7; j++) {
-      _(3).times(()=>{deck.push(j+suit)})
+      times(3, ()=>{deck.push(j+suit)})
     }
     for (let j=8; j<=10; j++) {
-      _(2).times(()=>{deck.push(j+suit)})
+      times(2, ()=>{deck.push(j+suit)})
     }
   }
-  _(4).times(deck.push('JS'))
-  _(3).times(deck.push('JD'))
-  _(2).times(deck.push('JC'))
-  _(2).times(deck.push('QD'))
+  times(4, deck.push('JS'))
+  times(3, deck.push('JD'))
+  times(2, deck.push('JC'))
+  times(2, deck.push('QD'))
   deck.push('JH')
   deck.push('QC')
   return shuffle(deck)
@@ -39,11 +39,11 @@ export const generateDeck = () => {
 export const shuffle = (deck, num=10) => {
   const deckSize = deck.length
   const newDeck = [...deck]
-  let rand =  _.random(deckSize-1)
-  _.times(num, ()=>{
+  let rand =  random(deckSize-1)
+  times(num, ()=>{
     for(let i=0; i<deckSize; i++){
       [newDeck[i], newDeck[rand]] = [newDeck[rand], newDeck[i]];
-      rand = _.random(deckSize-1)
+      rand = random(deckSize-1)
     }
   });
   return newDeck
@@ -231,10 +231,10 @@ const LawDeck = () => {
       "card": "2C",
       "text": "TAKE THE LAW CARD FROM THE\nTOP THAT EQUALS YOUR TYPE\nAND OBEY IT WITHOUT ESCAPE\n(DISCARD LAWS IN BETWEEN).",
       "enforce": function(plyr) {
-        let [moons, other_laws] = _.partition(plyr.active_laws, (card)=>{ return card.rank==CardRankMap['K'][1]; });
+        let [moons, other_laws] = partition(plyr.active_laws, (card)=>{ return card.rank==CardRankMap['K'][1]; });
         plyr.active_laws = other_laws; // temporarily remove moons: NO ESCAPE!
         var obey_law = nil;
-        _.times(plyr.type, ()=>{ obey_law = this.drawCard(); });
+        times(plyr.type, ()=>{ obey_law = this.drawCard(); });
         obey_law.enforce(plyr);
         plyr.active_laws = moons + other_laws; // give moons back
       }
@@ -475,7 +475,7 @@ const LawDeck = () => {
       "text": "PRACTICE THREEFOLD\nATTENTION: ADD THREE\nLAWS TO YOUR LAW PILE.",
       "enforce": function(plyr) {
         if (plyr.hasMoon('Hearts')) return;
-        _.times(3, (n)=>{ plyr.law_hand.push(board.drawLawCard()) });
+        times(3, (n)=>{ plyr.law_hand.push(board.drawLawCard()) });
       }
     },
     {
@@ -483,7 +483,7 @@ const LawDeck = () => {
       "text": "LEARN THIRD RESPONSE:\nDRAW FIVE CARDS.",
       "enforce": function(plyr) {
         if (plyr.hasMoon('Hearts')) return;
-        _.times(5, (n)=>{ plyr.card_hand.push(board.drawCard()); });
+        times(5, (n)=>{ plyr.card_hand.push(board.drawCard()); });
       }
     },
     {
