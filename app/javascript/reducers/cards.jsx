@@ -1,5 +1,7 @@
 import { map, filter, isEmpty, every, some, isNaN } from 'lodash'
 
+import { generateDeck, shuffle } from 'components/cards'
+
 const selectedCards = (cards) => map(filter(cards, 'selected'), 'c')
 const suit = (card) => card[card.length-1]
 const rank = (card) => (card=='XJ' || card=='JO') ? card : card.slice(0, -1)
@@ -34,7 +36,14 @@ export const playableCards = (cards) => {
   }
 }
 
-const cards = ( state = {}, action ) => {
+const cards = (
+  state = {
+    deck: generateDeck(),
+    discards: [],
+    hand: []
+  },
+  action
+) => {
   const {
     deck,
     discards,
@@ -44,7 +53,7 @@ const cards = ( state = {}, action ) => {
     case 'DRAW_CARD':
       let nextDeck, nextDiscards
       if (isEmpty(deck)) {
-        nextDeck = Deck.shuffle(discards)
+        nextDeck = shuffle(discards)
         nextDiscards = []
       } else {
         nextDeck = deck

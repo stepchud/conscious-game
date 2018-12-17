@@ -1,11 +1,21 @@
-const board = ( state = {}, action ) => {
+import { sixSides } from 'components/dice'
+import { initialSpaces, convertToDeath } from 'components/board'
+
+const board = (
+  state = {
+    roll: 0,
+    position: 0,
+    spaces: initialSpaces
+  },
+  action
+) => {
   switch(action.type) {
     case 'ROLL_DICE':
       const roll = sixSides.roll()
       if (state.position + roll >= state.spaces.length) {
         return {
           roll,
-          spaces: Board.convertToDeath(state.spaces),
+          spaces: convertToDeath(state.spaces),
           position: 0
         }
       } else {

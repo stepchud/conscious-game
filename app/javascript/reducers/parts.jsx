@@ -202,7 +202,6 @@ const foodDiagram = (
   state = InitialState,
   action
 ) => {
-  console.log(`FD: ${action.type}`)
   const {
     current,
     enter,

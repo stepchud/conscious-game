@@ -1,3 +1,6 @@
+import React from 'react'
+import ReactDOM from 'react-dom'
+
 export const initialSpaces =
   '*AFAIFCACFFCIAACFFICAFACCFICFAAFCCLAFICCFAFICAFCC' +
   'IAACFFICAICAFFICCAAIFCLLCFFIAAICCFIACIFACIAFICAIL' +
@@ -15,17 +18,29 @@ const spaceMap = {
   'D': 'Decay',
 }
 const name = (letter) => spaceMap[letter]
-const before = (spaces, position) => spaces.slice(0, position)
-const at = (spaces, position) => spaces.slice(position, position+1)
-const after = (spaces, position) => spaces.slice(position+1, spaces.length)
-
-export const split = (spaces, position) => ({
-  before: before(spaces, position),
-  at: at(spaces, position),
-  after: after(spaces, position)
+const split = (spaces, position) => ({
+  before: spaces.slice(0, position),
+  at: spaces.slice(position, position+1),
+  after: spaces.slice(position+1, spaces.length),
 })
 
 export const convertToDeath = (spaces) => {
   const deathSpaces = spaces.replace(/L/g, '*').replace(/C/g, 'D');
   return deathSpaces.split("").reverse().join("");
 }
+
+const board = ({
+  spaces,
+  position,
+}) => {
+  const { before, at, after } = split(spaces, position)
+  return (
+    <div className="board-spaces">
+      {before}
+      <span style={{textDecoration: 'underline'}}>{at}</span>
+      {after}
+    </div>
+  )
+}
+
+export default board

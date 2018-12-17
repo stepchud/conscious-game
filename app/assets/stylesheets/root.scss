@@ -2,8 +2,16 @@
 // They will automatically be included in application.css.
 // You can use Sass (SCSS) here: http://sass-lang.com/
 .board-spaces {
-  margin-top: 10px;
+  margin: 10px 0;
   word-wrap: break-word;
+}
+
+.dice {
+  margin-right: 10px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background-color: black;
+  color: red;
 }
 
 .cards {
@@ -16,5 +24,11 @@
       border: 2px dotted black;
       font-weight: bold;
     }
+  }
+}
+.being {
+  .card {
+    margin-left: 5px;
+    margin-right: 4px;
   }
 }
