@@ -2,7 +2,7 @@ import React from 'react'
 
 import { spaces, s2, s3 } from './utils'
 
-const handleExtra = (extra, dispatch) => {
+export const processExtra = (extra, dispatch) => {
   switch(extra) {
     case 'MENTAL-BODY':
       alert('You have a mental body')
@@ -27,6 +27,34 @@ const handleExtra = (extra, dispatch) => {
     case 'EXTRA-FOOD':
       alert('Extra Food: Draw a card.')
       dispatch({type: 'DRAW_CARD'})
+      break
+    case 'SELF-REMEMBER':
+      dispatch({type: 'SELF_REMEMBER'})
+      break
+    case 'TRANSFORM-EMOTIONS':
+      dispatch({type: 'TRANSFORM_EMOTIONS'})
+      break
+    case 'WILD-SHOCK':
+      if (confirm('Wild Shock! Transform Emotions?\nCancel to choose another option')) {
+        dispatch({type: 'TRANSFORM_EMOTIONS'})
+      } else {
+        if (confirm('Press "OK" to Self-Remember, "Cancel" to Shock Food.')) {
+          dispatch({type: 'SELF_REMEMBER'})
+        } else {
+          dispatch({type: 'SHOCKS_FOOD'})
+        }
+      }
+      break
+    case 'ALL-SHOCKS':
+      dispatch({type: 'TRANSFORM_EMOTIONS'})
+      dispatch({type: 'SELF_REMEMBER'})
+      dispatch({type: 'SHOCKS_FOOD'})
+      break
+    case 'SHOCKS-FOOD':
+      dispatch({type: 'SHOCKS_FOOD'})
+      break
+    case 'SHOCKS-AIR':
+      dispatch({type: 'SHOCKS_AIR'})
       break
     case 'C-12':
       alert('Carbon 12')
@@ -54,12 +82,6 @@ const handleExtra = (extra, dispatch) => {
       } else {
         dispatch({type: 'LEAVE_DO_48'})
       }
-      break
-    case 'SHOCKS-FOOD':
-      dispatch({type: 'SHOCKS_FOOD'})
-      break
-    case 'SHOCKS-AIR':
-      dispatch({type: 'SHOCKS_AIR'})
       break
     case 'RE-96':
       alert('No 24')
@@ -92,24 +114,11 @@ const handleExtra = (extra, dispatch) => {
     case 'VOID':
       alert('Pouring from the empty into the void.')
       break
-    case 'NOTHING_TO_REMEMBER':
+    case 'NOTHING-TO-REMEMBER':
       alert('Nothing to Remember.')
       break
     default:
       console.warn(`handeExtra unknown extra: ${extra}`)
-  }
-}
-
-export const handleExtras = (store, action) => {
-  store.dispatch(action)
-  const extras = store.getState().fd.extras
-  const dispatch = store.dispatch
-  const dispatchExtra = (extra) => {
-    return handleExtra(extra, dispatch)
-  }
-  if (extras.length) {
-    extras.map(dispatchExtra)
-    store.dispatch({type: 'CLEAR_EXTRAS'})
   }
 }
 

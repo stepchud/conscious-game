@@ -24,6 +24,8 @@ const has192 = (fd) => (fd.food[2] || fd.air[0])
 export const hasNewBody = (fd) =>
   fd.food[8]>=3 && fd.air[6]>=3 && fd.impressions[4]>=1 && !fd.mental
 
+export const entering = (enter) =>
+  _.some([...enter.food, ...enter.air, ...enter.impressions])
 
 const enterNotes = ({ current, enter, extras }) => {
   // place empty notes, order doesn't matter here
@@ -280,7 +282,7 @@ const foodDiagram = (
         enter.impressions[1]++
         extras.push("SHOCKS-AIR")
       } else {
-        extras.push("NOTHING_TO_REMEMBER")
+        extras.push("NOTHING-TO-REMEMBER")
       }
       nextState = { current, enter, extras }
       break
@@ -319,8 +321,13 @@ const foodDiagram = (
       }
       nextState = { current, enter, extras }
       break
-    case 'CLEAR_EXTRAS':
-      nextState = { current, enter, extras: [] }
+    case 'CLEAR_EXTRA':
+      const idx = extras.indexOf(action.extra)
+      nextState = {
+        current,
+        enter,
+        extras: [...extras.slice(0,idx), ...extras.slice(idx+1)]
+      }
       break
     case 'CHANGE_BODY':
       let newFood = current.food[8]
@@ -358,7 +365,6 @@ const foodDiagram = (
       nextState = { current, enter, extras }
       break
     default:
-      console.warn(`Unkown FoodDiagram Action: ${action.type}`)
       return state
   }
 

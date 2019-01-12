@@ -2,7 +2,6 @@ import { map, filter, isEmpty, every, some, isNaN } from 'lodash'
 
 import { generateDeck, shuffle } from 'components/cards'
 
-const selectedCards = (cards) => map(filter(cards, 'selected'), 'c')
 const suit = (card) => card[card.length-1]
 const rank = (card) => (card=='XJ' || card=='JO') ? card : card.slice(0, -1)
 const sameSuit = (...cards) => {
@@ -11,7 +10,7 @@ const sameSuit = (...cards) => {
 }
 const sameRank = (...cards) => {
   const ranks = new Set(map(cards, rank))
-  return ranks.length < cards.length
+  return ranks.size < cards.length
 }
 const grouped = (...cards) => {
   const ranks = cards.map(rank).map(c => Number(c))
@@ -24,9 +23,9 @@ const grouped = (...cards) => {
          every(ranks, c => c>=8 && c<=10)
 }
 
+export const selectedCards = (cards) => map(filter(cards, 'selected'), 'c')
 
-export const playableCards = (cards) => {
-  const selected = selectedCards(cards)
+export const playable = (selected) => {
   if (selected.length == 0 || selected.length > 3) {
     return false
   } else if (selected.length == 1) {
@@ -36,19 +35,38 @@ export const playableCards = (cards) => {
   }
 }
 
+export const makeFaceCard = (cards) => {
+  if (!playable(cards)) { return }
+
+  const c = cards[0]
+  if (cards.length == 1) {
+    return [c, 1]
+  } else {
+    const firstRank = rank(c)
+    const face = (firstRank <= 4) ? 'J' : (firstRank <= 7 ? 'Q' : 'K')
+    return [
+      `${face}${suit(c)}`,
+      cards.length == 3 ? 2 : 1
+    ]
+  }
+}
+
 const cards = (
   state = {
     deck: generateDeck(),
     discards: [],
-    hand: []
+    hand: [],
+    pieces: [],
   },
   action
 ) => {
   const {
     deck,
     discards,
-    hand
+    hand,
+    pieces,
   } = state
+
   switch(action.type) {
     case 'DRAW_CARD':
       let nextDeck, nextDiscards
@@ -62,7 +80,8 @@ const cards = (
       return {
         deck: nextDeck.slice(1),
         discards: nextDiscards,
-        hand: hand.concat({ c: nextDeck[0], selected: false })
+        hand: hand.concat({ c: nextDeck[0], selected: false }),
+        pieces
       }
     case 'SELECT_CARD':
       const card = hand[action.card]
@@ -74,14 +93,22 @@ const cards = (
       return {
         deck,
         discards,
-        hand: nextHand
+        hand: nextHand,
+        pieces
       }
     case 'PLAY_SELECTED':
-      const selected = selectedCards(hand)
+      return {
+        deck,
+        discards: [...discards, ...action.cards],
+        hand: hand.filter(c => !c.selected),
+        pieces: makeFaceCard(action.cards),
+      }
+    case 'CLEAR_PIECES':
       return {
         deck,
         discards,
-        hand
+        hand,
+        pieces: []
       }
     default:
       return state
