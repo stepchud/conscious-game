@@ -9,13 +9,12 @@ import FoodDiagram, { processExtra } from 'components/food'
 import ThreeBrains from 'components/being'
 
 // reducers
-import cards, { selectedCards, playable } from 'reducers/cards'
+import board, { selectedCards, playable } from 'reducers/board'
 import fd,    { entering, hasNewBody } from 'reducers/parts'
-import board from 'reducers/board'
 import ep from 'reducers/being'
 
 
-const game = combineReducers({ cards, board, fd, ep })
+const game = combineReducers({ board, fd, ep })
 const store = createStore(game)
 const dispatchExtra = (extra) => processExtra(extra, store.dispatch)
 
@@ -34,7 +33,7 @@ const handleExtras = (action) => {
 
 const handlePieces = (action) => {
   store.dispatch(action)
-  const pieces = store.getState().cards.pieces
+  const pieces = store.getState().board.pieces
   store.dispatch({ type: 'MAKE_PIECES', pieces })
   let shock = store.getState().ep.shocks[0]
   while (shock) {
@@ -48,12 +47,33 @@ const handlePieces = (action) => {
 
 // actions
 const actions = {
-  onRollClick: () => store.dispatch({ type: 'ROLL_DICE' }),
+  onRollClick: () => {
+    store.dispatch({ type: 'ROLL_DICE' })
+    const { position, spaces, } = store.getState().board
+    switch(spaces[position]) {
+      case 'F':
+        handleExtras({ type: 'EAT_FOOD' })
+        break;
+      case 'A':
+        handleExtras({ type: 'BREATHE_AIR' })
+        break;
+      case 'I':
+        handleExtras({ type: 'TAKE_IMPRESSION' })
+        break;
+      case 'C':
+        store.dispatch({ type: 'DRAW_CARD' })
+        break;
+      case 'L':
+      case 'D':
+      case '*':
+      default:
+    }
+  },
   onDrawCard: () => store.dispatch({ type: 'DRAW_CARD' }),
   onSelectCard: (card) => store.dispatch({ type: 'SELECT_CARD', card }),
   onSelectPart: (card) => store.dispatch({ type: 'SELECT_PART', card }),
   onPlaySelected: () =>
-    handlePieces({ type: 'PLAY_SELECTED', cards: selectedCards(store.getState().cards.hand) }),
+    handlePieces({ type: 'PLAY_SELECTED', cards: selectedCards(store.getState().board.hand) }),
   onDrawLawCard: () => store.dispatch({ type: 'DRAW_LAW_CARD' }),
   onEatFood: () => handleExtras({ type: 'EAT_FOOD' }),
   onBreatheAir: () => handleExtras({ type: 'BREATHE_AIR' }),
@@ -65,17 +85,17 @@ const actions = {
 }
 
 const ConsciousBoardgame = () => {
-  const { cards, board, fd, ep } = store.getState()
+  const { board, fd, ep } = store.getState()
   return (
     <div>
       <Buttons
         actions={actions}
         roll={board.roll}
-        playable={playable(selectedCards(cards.hand))}
+        playable={playable(selectedCards(board.hand))}
         newBody={hasNewBody(fd.current)}
       />
       <Board {...board} />
-      <Hand cards={cards.hand} onSelect={actions.onSelectCard} />
+      <Hand cards={board.hand} onSelect={actions.onSelectCard} />
       <FoodDiagram {...fd} store={store} />
       <ThreeBrains {...ep} onSelect={actions.onSelectPart} />
     </div>

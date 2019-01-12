@@ -1,5 +1,5 @@
 import { sum } from 'lodash'
-import { makeFaceCard } from 'reducers/cards'
+import { makeFaceCard } from 'reducers/board'
 
 const PARTS = [
   "JD","QD","KD","JC","QC","KC",
