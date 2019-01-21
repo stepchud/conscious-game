@@ -1,3 +1,5 @@
+import { identity, findIndex, findLastIndex } from 'lodash'
+
 const InitialState = {
   current: {
     food:        [1,1,1,0,0,0,0,0,0],
@@ -21,6 +23,62 @@ const has48  = (fd) => (fd.food[4] || fd.air[2] || fd.impressions[0])
 const has96  = (fd) => (fd.food[3] || fd.air[1])
 const has192 = (fd) => (fd.food[2] || fd.air[0])
 
+const noteIndex = (note, current) => {
+  let octave, index
+  switch(note) {
+    case 'DO-768':
+      return ['food', 0]
+    case 'RE-384':
+      return ['food', 1]
+    case 'MI-192':
+      return ['food', 2]
+    case 'FA-96':
+      return ['food', 3]
+    case 'SO-48':
+      return ['food', 4]
+    case 'LA-24':
+      return ['food', 5]
+    case 'TI-12':
+      return ['food', 6]
+    case 'DO-6':
+      return ['food', 7]
+    case 'DO-192':
+      return ['air', 0]
+    case 'RE-96':
+      return ['air', 1]
+    case 'MI-48':
+      return ['air', 2]
+    case 'FA-24':
+      return ['air', 3]
+    case 'SO-12':
+      return ['air', 4]
+    case 'LA-6':
+      return ['air', 5]
+    case 'DO-48':
+      return ['impressions', 0]
+    case 'RE-24':
+      return ['impressions', 1]
+    case 'MI-12':
+      return ['impressions', 2]
+    case 'FA-6':
+      return ['impressions', 3]
+    case 'HIGHEST-IMPRESSION':
+      const hImp = findLastIndex(current.impressions, identity, 2)
+      return ['impressions', hImp]
+    case 'LOWEST-IMPRESSION':
+      const lImp = findIndex(current.impressions, identity, 2)
+      return ['impressions', lImp]
+    case 'HIGHEST-AIR':
+      const hAir = findLastIndex(current.air, identity, 4)
+      return ['air', hAir]
+    case 'HIGHEST-FOOD':
+      const hFood = findLastIndex(current.food, identity, 6)
+      return ['food', hFood]
+    default:
+      throw `Unexpected note ${note}`
+  }
+  return [octave, index]
+}
 export const hasNewBody = (fd) =>
   fd.food[8]>=3 && fd.air[6]>=3 && fd.impressions[4]>=1 && !fd.mental
 
@@ -321,13 +379,22 @@ const foodDiagram = (
       }
       nextState = { current, enter, extras }
       break
-    case 'CLEAR_EXTRA':
-      const idx = extras.indexOf(action.extra)
-      nextState = {
-        current,
-        enter,
-        extras: [...extras.slice(0,idx), ...extras.slice(idx+1)]
-      }
+    case 'ADD_NOTES':
+      _.each(notes, (note) => {
+        const [octave, index] = noteIndex(note, current)
+        current[octave][index] += note
+      })
+      nextState = { current, enter, extras }
+      break
+    case 'TAKE_NOTES':
+      _.each(notes, (note) => {
+        const [octave, index] = noteIndex(note)
+        current[octave][index] = 0
+      })
+      nextState = { current, enter, extras }
+      break
+    case 'SHIFT_EXTRA':
+      nextState = { current, enter, extras: extras.slice(1) }
       break
     case 'CHANGE_BODY':
       let newFood = current.food[8]
