@@ -380,14 +380,14 @@ const foodDiagram = (
       nextState = { current, enter, extras }
       break
     case 'ADD_NOTES':
-      _.each(notes, (note) => {
+      _.each(action.notes, (note) => {
         const [octave, index] = noteIndex(note, current)
-        current[octave][index] += note
+        enter[octave][index] += 1
       })
       nextState = { current, enter, extras }
       break
     case 'TAKE_NOTES':
-      _.each(notes, (note) => {
+      _.each(action.notes, (note) => {
         const [octave, index] = noteIndex(note)
         current[octave][index] = 0
       })

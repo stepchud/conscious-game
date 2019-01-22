@@ -1,5 +1,5 @@
 import React from 'react'
-import { map } from 'lodash'
+import { map, } from 'lodash'
 
 export const Card = ({
   card,
@@ -16,9 +16,11 @@ const LawCard = ({
   onClick
 }) => {
   const classes = `card law ${card.selected ? 'selected' : ''}`
-  return <span title={card.c.text} className={classes} onClick={onClick}>
-    {card.c.card}
-  </span>
+  return (
+    <span title={card.c.text} className={classes} onClick={onClick}>
+      {card.c.card}{card.obeyed && <sup>o</sup>}{card.played && <sup>p</sup>}
+    </span>
+  )
 }
 
 export const CardHand = ({

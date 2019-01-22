@@ -1,7 +1,12 @@
-import { map, isEmpty, } from 'lodash'
-import { shuffle, selectedCards, makeFaceCard } from 'reducers/cards'
+import { map, filter, some, isEmpty } from 'lodash'
+import {
+  shuffle,
+  selectedCards,
+  makeFaceCard,
+  sameSuit,
+} from 'reducers/cards'
 
-const lawCards = [
+const LAW_CARDS = [
   {
     "card": "2D",
     "text": "YOU GET THE HICCUPS:\nCREATE MI-192.",
@@ -161,6 +166,7 @@ const lawCards = [
     "card": "2C",
     "text": "TAKE THE LAW CARD FROM THE\nTOP THAT EQUALS YOUR TYPE\nAND OBEY IT WITHOUT ESCAPE\n(DISCARD LAWS IN BETWEEN).",
     "actions": [
+      {type: 'ACTIVE_LAW', card: '2C'},
       {type: 'OBEY_WITHOUT_ESCAPE', card: '2C'}
     ]
   },
@@ -451,6 +457,7 @@ const lawCards = [
     "card": "2S",
     "text": "TAKE ONE LAW CARD FROM\nTHE TOP, WHICH EVERYONE\nMUST OBEY WITHOUT ESCAPE.",
     "actions": [
+      {type: 'ACTIVE_LAW', card: '2S'},
       {type: 'OBEY_WITHOUT_ESCAPE', card: '2S'}
     ]
   },
@@ -613,8 +620,12 @@ const lawCards = [
   }
 ]
 
+export const selectedLaws = (cards) => map(filter(cards, 'selected'), 'c.card')
+const activeKings = (active) => filter(active, (c) => c.slice(0, 1) === 'K')
+const activeTwo = (active) => filter(active, (c) => '2C' === c || '2S' === c).length
+
 const generateLawDeck = () => {
-  return shuffle(lawCards)
+  return shuffle(LAW_CARDS)
 }
 
 const laws = (
@@ -623,6 +634,7 @@ const laws = (
     active: [],
     deck: generateLawDeck(),
     discards: [],
+    actions: [],
   },
   action
 ) => {
@@ -654,42 +666,76 @@ const laws = (
         ...state,
         hand: [
           ...hand.slice(0, action.card),
-          { c: card.c, selected: !card.selected },
+          { ...card, selected: !card.selected },
           ...hand.slice(action.card+1)
         ],
       }
     case 'PLAY_SELECTED':
-      const selected = selectedCards(action.hands)
-      const pieces = makeFaceCard(selected)
+      const cards = selectedCards(action.hand)
+      const lawCards = selectedLaws(action.lawHand)
+      if (!makeFaceCard(cards.concat(lawCards))) { return state }
 
-      if (!pieces.length) { return state }
-
-      // mark laws as played, cards handles pieces creation
+      // mark laws as played, cards reducer handles piece creation
       return {
         ...state,
-        hand: map(hand, (c) => {
-          if (c.selected) {
-            c.selected = false
-            c.played = true
-          }
-          return c
+        hand: map(action.lawHand, (c) => {
+          return c.selected ?
+            {
+              ...c,
+              selected: false,
+              played: true
+            } : {
+              ...c
+            }
         }),
       }
     case 'OBEY_LAW':
-      return {
+      if (filter(hand, 'selected').length !== 1) {
+        console.log("only 1 law play at a time")
+        return state
+      }
+      const lc = filter(hand, 'selected')[0]
+      if (lc.obeyed) {
+        console.log("already obeyed ", lc)
+        return state
+      }
+
+      let nextState = {
         ...state,
         hand: map(hand, (c) => {
-          if (c.selected) {
-            c.obeyed = true
-            c.selected = false
-          }
-          return c
+          return c.selected ?
+            {
+              ...c,
+              selected: false,
+              obeyed: true
+            } : {
+              ...c
+            }
         }),
+      }
+
+      if (activeTwo(active)) {
+        console.log("no escape!")
+      } else {
+        if (some(activeKings(active), (k) => sameSuit(k, lc.c.card))) {
+          console.log("Moon escapes! ", lc)
+          return nextState
+        }
+      }
+
+      return {
+        ...nextState,
+        actions: lc.c.actions,
       }
     case 'ACTIVE_LAW':
       return {
         ...state,
         active: active.concat(action.card),
+      }
+    case 'CLEAR_ACTIONS':
+      return {
+        ...state,
+        actions: []
       }
     default:
       return state

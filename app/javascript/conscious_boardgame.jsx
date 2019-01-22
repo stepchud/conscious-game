@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { combineReducers, createStore} from 'redux'
+import { filter, map, includes } from 'lodash'
 
 import Buttons from 'components/buttons'
 import Board   from 'components/board'
@@ -10,7 +11,7 @@ import ThreeBrains from 'components/being'
 
 // reducers
 import board from 'reducers/board'
-import cards from 'reducers/cards'
+import cards, { sameSuit } from 'reducers/cards'
 import laws  from 'reducers/laws'
 import fd, { entering, hasNewBody } from 'reducers/food_diagram'
 import ep from 'reducers/being'
@@ -157,8 +158,9 @@ const dispatchWithExtras = (action) => {
 
 const handlePieces = (action) => {
   store.dispatch(action)
-  const pieces = store.getState().board.pieces
+  const pieces = store.getState().cards.pieces
   store.dispatch({ type: 'MAKE_PIECES', pieces })
+  store.dispatch({ type: 'CLEAR_PIECES' })
   let shock = store.getState().ep.shocks[0]
   while (shock) {
     presentEvent(shock)
@@ -166,21 +168,14 @@ const handlePieces = (action) => {
     shock = store.getState().ep.shocks[0]
   }
   dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' })
-  store.dispatch({ type: 'CLEAR_PIECES' })
 }
 
 const handleLawEvents = () => {
-  const lawHand = store.getState().laws.hand
-  const selectedLaws = selectedCards(lawHand)
-  if (selectedLaws.length !== 1) { return }
-  const lc = selectedLaws[0]
-  if (lc.obeyed) { return }
-
   store.dispatch({ type: 'OBEY_LAW' })
-  const activeLaws = store.getState().laws.active
-  for (let action of lc.actions) {
-    store.dispatch(action)
+  for (let lawAction of store.getState().laws.actions) {
+    store.dispatch(lawAction)
   }
+  store.dispatch({ type: 'CLEAR_ACTIONS' })
   handleExtras()
 }
 
@@ -226,7 +221,8 @@ const actions = {
   onPlaySelected: () => {
     const hand = store.getState().cards.hand
     const lawHand = store.getState().laws.hand
-    handlePieces({ type: 'PLAY_SELECTED', hands: hand.concat(lawHand) })
+    if (filter(lawHand, (l) => l.played && l.selected).length) { return }
+    handlePieces({ type: 'PLAY_SELECTED', hand, lawHand })
   },
   onObeyLaw: handleLawEvents,
   onEatFood: () => dispatchWithExtras({ type: 'EAT_FOOD' }),

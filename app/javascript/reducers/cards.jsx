@@ -1,18 +1,5 @@
-import { times, random, map, filter, isEmpty, every } from 'lodash'
-
-const CardRankMap = {
-    'A': ['Ace',  14],
-    'K': ['King', 13],
-    'Q': ['Queen',12],
-    'J': ['Jack', 11]
-}
-
-const CardSuitMap = {
-    'D': 'Diamonds',
-    'C': 'Clubs',
-    'H': 'Hearts',
-    'S': 'Spades'
-}
+import { times, random, map, filter, isEmpty, every, some } from 'lodash'
+import { selectedLaws } from 'reducers/laws'
 
 const generateDeck = () => {
   let deck = []
@@ -50,8 +37,8 @@ export const shuffle = (deck, num=10) => {
 }
 
 const suit = (card) => card[card.length-1]
-const rank = (card) => (card.card=='XJ' || card.card=='JO') ? card.card : card.card.slice(0, -1)
-const sameSuit = (...cards) => {
+const rank = (card) => (card=='XJ' || card=='JO') ? card : card.slice(0, -1)
+export const sameSuit = (...cards) => {
   const firstSuit = suit(cards[0])
   return every(cards, c => suit(c) === firstSuit)
 }
@@ -73,9 +60,6 @@ const grouped = (...cards) => {
 export const selectedCards = (cards) => map(filter(cards, 'selected'), 'c')
 
 export const playable = (selected) => {
-  if (filter(selected, 'played').length) {
-    return false
-  }
   if (selected.length == 0 || selected.length > 3) {
     return false
   }
@@ -88,7 +72,7 @@ export const playable = (selected) => {
 }
 
 export const makeFaceCard = (cards) => {
-  if (!playable(cards)) { return }
+  if (!playable(cards)) { return false }
 
   const c = cards[0]
   if (cards.length == 1) {
@@ -147,26 +131,16 @@ const cards = (
         hand: nextHand,
       }
     case 'PLAY_SELECTED':
-      const selected = selectedCards(action.hands)
-      const pieces = makeFaceCard(selected)
-
-      if (!pieces.length) { return state }
+      const cards = selectedCards(action.hand)
+      const lawCards = selectedLaws(action.lawHand)
+      const pieces = makeFaceCard(cards.concat(lawCards))
+      if (!pieces) { return state }
 
       return {
         ...state,
-        discards: [...discards, ...selected],
+        pieces,
+        discards: [...discards, ...cards],
         hand: hand.filter(c => !c.selected),
-        pieces: makeFaceCard(selected),
-      }
-    case 'OBEY_LAW':
-      const selectedLaws = selectedCards(lawHand)
-      if (selectedLaws.length !== 1) { return state }
-
-      return {
-        ...state,
-        lawDiscards: [...lawDiscards, ...selectedLaws],
-        lawHand: lawHand.filter(c => !c.selected),
-        events: selectedLaws[0].events
       }
     case 'CLEAR_PIECES':
       return {
