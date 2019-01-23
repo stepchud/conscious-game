@@ -13,7 +13,12 @@ const ep = (
   state = {
     parts: PARTS.map(mapParts),
     pieces: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    shocks: []
+    shocks: [],
+    card_plays: 1,
+    level_of_being: 'multiplicity',
+    sleep: false,
+    powers: true,
+    skills: true,
   },
   action
 ) => {
@@ -21,7 +26,10 @@ const ep = (
   switch(action.type) {
     case 'SELECT_PART':
       parts[action.card].selected = !parts[action.card].selected
-      return { parts, pieces, shocks }
+      return {
+        ...state,
+        parts
+      }
     case 'MAKE_PIECES':
       let i = PARTS.indexOf(action.pieces[0])
       pieces[i] += action.pieces[1]
@@ -32,9 +40,26 @@ const ep = (
         pieces[i] += 1
         shocks.push(shock(i))
       }
-      return { parts, pieces, shocks }
+      return {
+        ...state,
+        pieces,
+        shocks,
+      }
     case 'SHIFT_SHOCK':
-      return { parts, pieces, shocks: shocks.slice(1) }
+      return {
+        ...state,
+        shocks: shocks.slice(1),
+      }
+    case 'MAGNETIC_CENTER_MOMENT':
+      return {
+        ...state,
+        card_plays: state.card_plays + 1,
+      }
+    case 'MECHANICAL':
+      return {
+        ...state,
+        [action.lost]: true,
+      }
     default:
       return state
   }

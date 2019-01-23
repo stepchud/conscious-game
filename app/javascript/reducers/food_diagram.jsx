@@ -271,36 +271,30 @@ const foodDiagram = (
   switch(action.type) {
     case "ADVANCE_FOOD_DIAGRAM":
       // entering notes move one step
-      nextState = enterNotes({ current, enter, extras })
-      break
+      return enterNotes({ current, enter, extras })
     case "EAT_FOOD":
       enter.food[0]+=1
-      nextState = enterNotes({ current, enter, extras })
-      break
+      return enterNotes({ current, enter, extras })
     case "BREATHE_AIR":
       enter.air[0]+=1
-      nextState = enterNotes({ current, enter, extras })
-      break
+      return enterNotes({ current, enter, extras })
     case "TAKE_IMPRESSION":
       enter.impressions[0]+=1
-      nextState = enterNotes({ current, enter, extras })
-      break
+      return enterNotes({ current, enter, extras })
     case "SHOCKS_FOOD":
       if (current.food[2]) {
         enter.food[3]++
         current.food[2]--
-        nextState = { current, enter, extras }
       }
-      break
+      return { current, enter, extras }
     case "SHOCKS_AIR":
       if (current.air[2]) {
         enter.air[3]++
         current.air[2]--
-        nextState = { current, enter, extras }
       }
-      break
+      return { current, enter, extras }
     case "BREATHE_WHEN_YOU_EAT":
-      nextState = {
+      return {
         current,
         enter: {
           food: [
@@ -313,9 +307,8 @@ const foodDiagram = (
         },
         extras
       }
-      break
     case "EAT_WHEN_YOU_BREATHE":
-      nextState = {
+      return {
         current,
         enter: {
           food: enter.food,
@@ -328,12 +321,10 @@ const foodDiagram = (
         },
         extras
       }
-      break
     case "CARBON_12":
       enter.impressions[1]+=1
       extras.push("SHOCKS-AIR")
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
     case "SELF_REMEMBER":
       if (current.impressions[0]>0) {
         current.impressions[0]--
@@ -342,8 +333,7 @@ const foodDiagram = (
       } else {
         extras.push("NOTHING-TO-REMEMBER")
       }
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
     case "TRANSFORM_EMOTIONS":
       if (current.impressions[2]>0) {
         current.impressions[2]--
@@ -353,49 +343,65 @@ const foodDiagram = (
         current.food[6]--
         enter.food[7]++
       }
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
     case "LEAVE_MI_48":
       if (current.air[2]==3) {
         extras.push("HYPERVENTILATE")
       } else {
         current.air[2]+=1
       }
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
     case "LEAVE_DO_48":
       if (current.impressions[0]==3) {
         extras.push("VOID")
       } else {
         current.impressions[0]+=1
       }
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
     case "LEAVE_MI_192":
       if (current.food[2]==3) {
         extras.push("BURP")
       } else {
         current.food[2]+=1
       }
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
     case 'ADD_NOTES':
       _.each(action.notes, (note) => {
         const [octave, index] = noteIndex(note, current)
         enter[octave][index] += 1
       })
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
     case 'TAKE_NOTES':
       _.each(action.notes, (note) => {
-        const [octave, index] = noteIndex(note)
+        const [octave, index] = noteIndex(note, current)
         current[octave][index] = 0
       })
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
+    case 'TRANSFORM_MI_TI_12_TO_6':
+      enter.impressions[3] = current.impressions[2]
+      current.impressions[2] = 0
+      const [octave, index] = noteIndex('HIGHEST-FOOD', current)
+      enter.food[7] = current.food[index]
+      current.food[index] = 0
+      return { current, enter, extras }
+    case 'SHOCK_MI48_LA6':
+      if (current.air[2]) {
+        enter.air[5] += current.air[2]
+        current.air[2] = 0
+      } else {
+        enter.air[2] += 1
+      }
+      return { current, enter, extras }
+    case 'SHOCK_MI_192_TI_12':
+      if (current.food[2]) {
+        enter.food[6] += current.food[2]
+        current.food[2] = 0
+      } else {
+        enter.food[2] += 1
+      }
+      return { current, enter, extras }
     case 'SHIFT_EXTRA':
-      nextState = { current, enter, extras: extras.slice(1) }
-      break
+      return { current, enter, extras: extras.slice(1) }
     case 'CHANGE_BODY':
       let newFood = current.food[8]
       let newAir = current.air[6]
@@ -429,13 +435,10 @@ const foodDiagram = (
           newImpressions--
         }
       }
-      nextState = { current, enter, extras }
-      break
+      return { current, enter, extras }
     default:
       return state
   }
-
-  return nextState
 }
 
 export default foodDiagram

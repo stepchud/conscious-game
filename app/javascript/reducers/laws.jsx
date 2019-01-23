@@ -1,6 +1,6 @@
-import { map, filter, some, isEmpty } from 'lodash'
+import { map, filter, shuffle, some, isEmpty } from 'lodash'
+
 import {
-  shuffle,
   selectedCards,
   makeFaceCard,
   sameSuit,
@@ -138,7 +138,7 @@ const LAW_CARDS = [
     "text": "MECHANICAL LIFE:\nSTAY ASLEEP FOR\n21 SPACES.",
     "actions": [
       {type: 'ACTIVE_LAW', card: 'JD'},
-      {type: 'SLEEP', for: 21},
+      {type: 'MECHANICAL', lost: 'sleep', for: 21},
     ]
   },
   {
@@ -159,7 +159,7 @@ const LAW_CARDS = [
     "card": "AD",
     "text": "WALKING TO YOUR CAR DURING\nA THUNDERSTORM AND ZAP,\nYOU ARE HIT BY LIGHTNING:\nINSTANT DEATH!",
     "actions": [
-      {type: 'INSTANT_DEATH'}
+      {type: 'DEATH', in: 0}
     ]
   },
   {
@@ -216,7 +216,7 @@ const LAW_CARDS = [
     "card": "5C",
     "text": "OBEY THE MASTER:\nTRANSFORM ALL MI-12 TO\nFA-6 AND ALL TI-12\n(OR HIGHEST FOOD) TO DO-6.",
     "actions": [
-      {type: 'TRANSFORM_MI_TI_12'},
+      {type: 'TRANSFORM_MI_TI_12_TO_6'},
     ]
   },
   {
@@ -294,7 +294,7 @@ const LAW_CARDS = [
     "text": "MECHANICAL LIFE:\nLOSE YOUR SKILLS\nFOR 37 SPACES.",
     "actions": [
       {type: 'ACTIVE_LAW', card: 'JC'},
-      {type: 'LOSE_SKILLS', for: 37},
+      {type: 'MECHANICAL', lost: 'noskills', for: 37},
     ]
   },
   {
@@ -316,7 +316,7 @@ const LAW_CARDS = [
     "text": "BITING YOUR NAILS LEADS\nTO A FORM OF CANCER:\nDEATH COMES IN 41 SPACES!",
     "actions": [
       {type: 'ACTIVE_LAW', card: 'AC'},
-      {type: 'DEATH_SPACE', in: 41},
+      {type: 'DEATH', in: 41},
     ]
   },
   {
@@ -428,7 +428,7 @@ const LAW_CARDS = [
     "text": "MECHANICAL LIFE:\nLOSE YOUR POWERS\nFOR 33 SPACES.",
     "actions": [
       {type: 'ACTIVE_LAW', card: 'JH'},
-      {type: 'LOSE_POWERS', for: 33},
+      {type: 'MECHANICAL', lost: 'nopowers', for: 33},
     ]
   },
   {
@@ -450,7 +450,7 @@ const LAW_CARDS = [
     "text": "AN OLD FAMILY DISEASE\nMANIFESTS IN YOUR BEING:\nDEATH COMES IN 27 SPACES!",
     "actions": [
       {type: 'ACTIVE_LAW', card: 'AH'},
-      {type: 'DEATH_SPACE', in: 27},
+      {type: 'DEATH', in: 27},
     ]
   },
   {
@@ -479,7 +479,7 @@ const LAW_CARDS = [
     "card": "4S",
     "text": "BREATHE WHEN YOU EAT:\nSHOCK ALL MI-192\nTO TI-12, OR ENTER MI-192\nIF NONE EXISTS",
     "actions": [
-      {type: 'SHOCK_MI_TI_12'}
+      {type: 'SHOCK_MI_192_TI_12'}
     ]
   },
   {
@@ -585,7 +585,9 @@ const LAW_CARDS = [
     "card": "QS",
     "text": "CREATE RIGHT VALUE:\nALL SHOCKS ARE BROUGHT\nTO YOUR BEING.",
     "actions": [
-      {type: 'ALL_SHOCKS'}
+      {type: 'TRANSFORM_EMOTIONS'},
+      {type: 'SELF_REMEMBER'},
+      {type: 'SHOCKS_FOOD'},
     ]
   },
   {
@@ -600,7 +602,7 @@ const LAW_CARDS = [
     "text": "A CRAZED IDENTIFIED MAN\nCLIMBS A TOWER AND\nSHOOTS 17 PEOPLE TO DEATH;\nYOU ARE ONE OF THEM!",
     "actions": [
       {type: 'ACTIVE_LAW', card: 'AS'},
-      {type: 'INSTANT_DEATH'},
+      {type: 'DEATH', in: 0},
     ]
   },
   {
@@ -688,6 +690,12 @@ const laws = (
               ...c
             }
         }),
+      }
+    case 'DISCARD_LAW_HAND':
+      return {
+        ...state,
+        discards: discards.concat(hand),
+        hand: []
       }
     case 'OBEY_LAW':
       if (filter(hand, 'selected').length !== 1) {

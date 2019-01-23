@@ -2,7 +2,7 @@ import { map, filter, isEmpty, every, some, isNaN } from 'lodash'
 
 import { initialSpaces, convertToDeath } from 'components/board'
 
-const Dice = (sides=10, zero=true) => {
+export const Dice = (sides=10, zero=true) => {
   const basis = zero ? 0 : 1
   const roll = () => Math.floor(Math.random() * sides) + basis;
   const opposite = (value) => sides + basis - value;

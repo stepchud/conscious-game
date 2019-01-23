@@ -18,7 +18,9 @@ const LawCard = ({
   const classes = `card law ${card.selected ? 'selected' : ''}`
   return (
     <span title={card.c.text} className={classes} onClick={onClick}>
-      {card.c.card}{card.obeyed && <sup>o</sup>}{card.played && <sup>p</sup>}
+      {card.c.card}
+      {card.obeyed && <sup>o</sup>}
+      {card.played && <sup>p</sup>}
     </span>
   )
 }
@@ -28,9 +30,9 @@ export const CardHand = ({
   onSelect,
 }) => {
   const hand = cards.length ? (
-    map(cards, (c, i) => { return <Card key={i} card={c} onClick={() => onSelect(i)} /> })
+    map(cards, (c, i) => <Card key={i} card={c} onClick={() => onSelect(i)} />)
   ) : (
-    <span>No Cards.</span>
+    <span>Empty Card Hand</span>
     )
   return (
     <div className="cards">
@@ -40,16 +42,28 @@ export const CardHand = ({
 }
 
 export const LawHand = ({
-  cards,
+  laws,
   onSelect,
 }) => {
-  const hand = cards.length ? (
-    map(cards, (c, i) => { return <LawCard key={i} card={c} onClick={() => onSelect(i)} /> })
+  const activeLaws = (
+    <div className="active laws">
+      { laws.active.length ? (
+          <strong>
+            Active Laws:
+            { map(laws.active, (c, i) => <LawCard key={i} card={c} onClick={() => {}} />) }
+          </strong>
+          ) : undefined
+      }
+    </div>
+  )
+  const hand = laws.hand.length ? (
+    map(laws.hand, (c, i) => <LawCard key={i} card={c} onClick={() => onSelect(i)} />)
   ) : (
-    <span>No Laws.</span>
+    <span>Empty Law Hand</span>
   )
   return (
     <div className="cards laws">
+      {activeLaws}
       {hand}
     </div>
   )

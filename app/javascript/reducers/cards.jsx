@@ -1,4 +1,4 @@
-import { times, random, map, filter, isEmpty, every, some } from 'lodash'
+import { times, shuffle, map, filter, isEmpty, every, some } from 'lodash'
 import { selectedLaws } from 'reducers/laws'
 
 const generateDeck = () => {
@@ -21,19 +21,6 @@ const generateDeck = () => {
   deck.push('JH')
   deck.push('QC')
   return shuffle(deck)
-}
-
-export const shuffle = (deck, num=10) => {
-  const deckSize = deck.length
-  const newDeck = [...deck]
-  let rand =  random(deckSize-1)
-  times(num, ()=>{
-    for(let i=0; i<deckSize; i++){
-      [newDeck[i], newDeck[rand]] = [newDeck[rand], newDeck[i]];
-      rand = random(deckSize-1)
-    }
-  });
-  return newDeck
 }
 
 const suit = (card) => card[card.length-1]
@@ -141,6 +128,21 @@ const cards = (
         pieces,
         discards: [...discards, ...cards],
         hand: hand.filter(c => !c.selected),
+      }
+    case 'DISCARD_BY_RANDOM':
+      const rand = Dice(hand.length).roll()
+      return {
+        ...state,
+        hand: [...hand.slice(0, rand), ...hand.slice(rand+1)],
+        discards: discards.concat(hand[rand]),
+      }
+    case 'LOSE_HALF_CARDS':
+      const shuffled = shuffle(hand)
+      const half = Math.floor(hand.length/2)
+      return {
+        ...state,
+        hand: hand.slice(half),
+        discards: discards.concat(hand.slice(0, half)),
       }
     case 'CLEAR_PIECES':
       return {

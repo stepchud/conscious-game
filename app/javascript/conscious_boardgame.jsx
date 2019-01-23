@@ -247,7 +247,7 @@ const ConsciousBoardgame = () => {
       />
       <Board {...board} />
       <CardHand cards={cards.hand} onSelect={actions.onSelectCard} />
-      <LawHand cards={laws.hand} onSelect={actions.onSelectLawCard} />
+      <LawHand laws={laws} onSelect={actions.onSelectLawCard} />
       <FoodDiagram {...fd} store={store} />
       <ThreeBrains {...ep} onSelect={actions.onSelectPart} />
     </div>
