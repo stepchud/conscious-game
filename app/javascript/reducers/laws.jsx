@@ -1,4 +1,4 @@
-import { map, filter, shuffle, some, isEmpty } from 'lodash'
+import { each, map, filter, reject, shuffle, some, isEmpty } from 'lodash'
 
 import {
   selectedCards,
@@ -18,7 +18,7 @@ const LAW_CARDS = [
     "card": "2D",
     "text": "CATCHING YOUR THING\nIN YOUR ZIPPER RESULTS\nIN NO SEX FOR TWO WEEKS:\nCREATE ALL NOTES OF FOOD.",
     "actions": [
-      {type: 'ADD_NOTES', notes: ['DO-768','RE-384','MI-192','FA-96','SO-48','LA-23','TI-12','DO-6']}
+      {type: 'ADD_NOTES', notes: ['DO-768','RE-384','MI-192','FA-96','SO-48','LA-24','TI-12','DO-6']}
     ]
   },
   {
@@ -137,7 +137,7 @@ const LAW_CARDS = [
     "card": "JD",
     "text": "MECHANICAL LIFE:\nSTAY ASLEEP FOR\n21 SPACES.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'JD'},
+      {type: 'ACTIVE_LAW', card: 18},
       {type: 'MECHANICAL', lost: 'sleep', for: 21},
     ]
   },
@@ -152,21 +152,23 @@ const LAW_CARDS = [
     "card": "KD",
     "text": "CREATE MOON IN YOURSELF:\nKEEP THIS CARD, WHICH\nFREES YOU FROM ALL\nLAWS OF ACCIDENT.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'KD'},
+      {type: 'ACTIVE_LAW', card: 20},
+      {type: 'REMOVE_ACTIVE', suit: 'D'},
     ]
   },
   {
     "card": "AD",
     "text": "WALKING TO YOUR CAR DURING\nA THUNDERSTORM AND ZAP,\nYOU ARE HIT BY LIGHTNING:\nINSTANT DEATH!",
     "actions": [
-      {type: 'DEATH', in: 0}
+      {type: 'DEATH', in: 0},
+      {type: 'ACTIVE_LAW', card: 21},
     ]
   },
   {
     "card": "2C",
     "text": "TAKE THE LAW CARD FROM THE\nTOP THAT EQUALS YOUR TYPE\nAND OBEY IT WITHOUT ESCAPE\n(DISCARD LAWS IN BETWEEN).",
     "actions": [
-      {type: 'ACTIVE_LAW', card: '2C'},
+      {type: 'ACTIVE_LAW', card: 22},
       {type: 'OBEY_WITHOUT_ESCAPE', card: '2C'}
     ]
   },
@@ -293,7 +295,7 @@ const LAW_CARDS = [
     "card": "JC",
     "text": "MECHANICAL LIFE:\nLOSE YOUR SKILLS\nFOR 37 SPACES.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'JC'},
+      {type: 'ACTIVE_LAW', card: 40},
       {type: 'MECHANICAL', lost: 'noskills', for: 37},
     ]
   },
@@ -308,14 +310,15 @@ const LAW_CARDS = [
     "card": "KC",
     "text": "CREATE MOON IN YOURSELF:\nKEEP THIS CARD, WHICH\nFREES YOU FROM ALL LAWS\nOF CAUSE AND EFFECT.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'KC'},
+      {type: 'ACTIVE_LAW', card: 42},
+      {type: 'REMOVE_ACTIVE', suit: 'C'},
     ]
   },
   {
     "card": "AC",
     "text": "BITING YOUR NAILS LEADS\nTO A FORM OF CANCER:\nDEATH COMES IN 41 SPACES!",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'AC'},
+      {type: 'ACTIVE_LAW', card: 43},
       {type: 'DEATH', in: 41},
     ]
   },
@@ -427,7 +430,7 @@ const LAW_CARDS = [
     "card": "JH",
     "text": "MECHANICAL LIFE:\nLOSE YOUR POWERS\nFOR 33 SPACES.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'JH'},
+      {type: 'ACTIVE_LAW', card: 58},
       {type: 'MECHANICAL', lost: 'nopowers', for: 33},
     ]
   },
@@ -435,21 +438,22 @@ const LAW_CARDS = [
     "card": "QH",
     "text": "PLAY THIS CARD AFTER\nANY ROLL AND TAKE\nTHE OPPOSITE SIDE\nOF THE DIE.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'QH'},
+      {type: 'ACTIVE_LAW', card: 59},
     ]
   },
   {
     "card": "KH",
     "text": "CREATE MOON IN YOURSELF:\nKEEP THIS CARD, WHICH\nFREES YOU FROM ALL\nLAWS OF FATE.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'KH'},
+      {type: 'ACTIVE_LAW', card: 60},
+      {type: 'REMOVE_ACTIVE', suit: 'H'},
     ]
   },
   {
     "card": "AH",
     "text": "AN OLD FAMILY DISEASE\nMANIFESTS IN YOUR BEING:\nDEATH COMES IN 27 SPACES!",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'AH'},
+      {type: 'ACTIVE_LAW', card: 61},
       {type: 'DEATH', in: 27},
     ]
   },
@@ -457,7 +461,7 @@ const LAW_CARDS = [
     "card": "2S",
     "text": "TAKE ONE LAW CARD FROM\nTHE TOP, WHICH EVERYONE\nMUST OBEY WITHOUT ESCAPE.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: '2S'},
+      {type: 'ACTIVE_LAW', card: 62},
       {type: 'OBEY_WITHOUT_ESCAPE', card: '2S'}
     ]
   },
@@ -564,7 +568,7 @@ const LAW_CARDS = [
     "card": "10S",
     "text": "MANIFEST FROM CONSCIENCE:\nUSE THIS CARD TO ROLL AGAIN\nAFTER ANY ROLL.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: '10S'},
+      {type: 'ACTIVE_LAW', card: 77},
     ]
   },
   {
@@ -594,14 +598,15 @@ const LAW_CARDS = [
     "card": "KS",
     "text": "CREATE MOON IN YOURSELF:\nKEEP THIS CARD, WHICH FREES\nYOU FROM ALL LAWS OF WILL.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'KS'},
+      {type: 'ACTIVE_LAW', card: 81},
+      {type: 'REMOVE_ACTIVE', suit: 'S'},
     ]
   },
   {
     "card": "AS",
     "text": "A CRAZED IDENTIFIED MAN\nCLIMBS A TOWER AND\nSHOOTS 17 PEOPLE TO DEATH;\nYOU ARE ONE OF THEM!",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'AS'},
+      {type: 'ACTIVE_LAW', card: 82},
       {type: 'DEATH', in: 0},
     ]
   },
@@ -616,18 +621,42 @@ const LAW_CARDS = [
     "card": "JO",
     "text": "HASNAMUSS:\nEXERCISE NO ROLL OPTIONS\nFOR THE DURATION OF YOUR EXISTENCE.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 'JO'},
+      {type: 'ACTIVE_LAW', card: 84},
       {type: 'HASNAMUSS'},
     ]
   }
 ]
 
+export const lawAtIndex = (law) => LAW_CARDS[law.index]
 export const selectedLaws = (cards) => map(filter(cards, 'selected'), 'c.card')
-const activeKings = (active) => filter(active, (c) => c.slice(0, 1) === 'K')
-const activeTwo = (active) => filter(active, (c) => '2C' === c || '2S' === c).length
+export const hasnamuss = (active) => active.includes(a => a.index == 84)
+export const queenHearts = (active) => active.includes(a => a.index == 59)
+export const tenSpades = (active) => active.includes(a => a.index == 77)
+
+const activeKings = (active) => map(filter(active, (c) => [20,42,60,81].includes(c.index)), lawAtIndex)
+const isLaw2    = (law) => 22===law.index || 62===law.index
+const isLawCard = (card) => {
+  if (card == '10S') {
+    return (law) => law.index == 77
+  } else if (card == 'QH') {
+    return (law) => law.index == 59
+  }
+}
+const isLawSuit = (suit) => {
+  switch(suit) {
+    case 'D':
+      return (law) => law.index<22 && law.index!=20
+    case 'C':
+      return (law) => law.index>=22 && law.index<44 && law.index!=42
+    case 'H':
+      return (law) => law.index>=44 && law.index<62 && law.index!=60
+    case 'S':
+      return (law) => law.index>=62 && law.index<83 && law.index!=81
+  }
+}
 
 const generateLawDeck = () => {
-  return shuffle(LAW_CARDS)
+  return LAW_CARDS.slice(62)
 }
 
 const laws = (
@@ -655,6 +684,10 @@ const laws = (
       } else {
         nextDeck = deck
         nextDiscards = discards
+      }
+      if (nextDeck.length == 0) {
+        console.log("deck is empty.")
+        return state
       }
       return {
         ...state,
@@ -694,7 +727,7 @@ const laws = (
     case 'DISCARD_LAW_HAND':
       return {
         ...state,
-        discards: discards.concat(hand),
+        discards: discards.concat(map(hand, 'c')),
         hand: []
       }
     case 'OBEY_LAW':
@@ -722,23 +755,46 @@ const laws = (
         }),
       }
 
-      if (activeTwo(active)) {
+      let actions = lc.c.actions
+      if (filter(active, isLaw2).length) {
         console.log("no escape!")
-      } else {
-        if (some(activeKings(active), (k) => sameSuit(k, lc.c.card))) {
-          console.log("Moon escapes! ", lc)
-          return nextState
-        }
+        actions = actions.concat({type: 'REMOVE_ACTIVE', rank: '2'})
+        each(
+          filter(actions, c => c.type == 'ACTIVE_LAW'),
+          c => c.no_escape = true
+        )
+      } else if (some(activeKings(active), (k) => sameSuit(k.card, lc.c.card))) {
+        console.log("Moon escapes! ", lc)
+        return nextState
       }
 
       return {
         ...nextState,
-        actions: lc.c.actions,
+        actions,
       }
     case 'ACTIVE_LAW':
       return {
         ...state,
-        active: active.concat(action.card),
+        active: active.concat({index: action.card, protected: !!action.no_escape}),
+      }
+    case 'REMOVE_ACTIVE':
+      let filterFunc
+      if (action.rank=='2') {
+        filterFunc = isLaw2
+      } else if (action.suit) {
+        filterFunc = isLawSuit(action.suit)
+      } else if (action.card) {
+        filterFunc = isLawCard(action.card)
+      }
+      return {
+        ...state,
+        active: reject(active, filterFunc),
+      }
+    case 'CANCEL_ALL_LAWS':
+      const newActive = map(filter(active, 'protected'), l => ({ index: l.index, protected: false }))
+      return {
+        ...state,
+        active: newActive,
       }
     case 'CLEAR_ACTIONS':
       return {

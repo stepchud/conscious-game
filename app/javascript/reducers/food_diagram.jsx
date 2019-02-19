@@ -66,7 +66,7 @@ const noteIndex = (note, current) => {
       const hImp = findLastIndex(current.impressions, identity, 2)
       return ['impressions', hImp]
     case 'LOWEST-IMPRESSION':
-      const lImp = findIndex(current.impressions, identity, 2)
+      const lImp = findIndex(current.impressions, identity)
       return ['impressions', lImp]
     case 'HIGHEST-AIR':
       const hAir = findLastIndex(current.air, identity, 4)
@@ -85,6 +85,7 @@ export const hasNewBody = (fd) =>
 export const entering = (enter) =>
   _.some([...enter.food, ...enter.air, ...enter.impressions])
 
+// entering notes move one step of harnel-miaznel
 const enterNotes = ({ current, enter, extras }) => {
   // place empty notes, order doesn't matter here
   _.each(enter.food, (n,i) => {
@@ -270,7 +271,6 @@ const foodDiagram = (
   let nextState = state
   switch(action.type) {
     case "ADVANCE_FOOD_DIAGRAM":
-      // entering notes move one step
       return enterNotes({ current, enter, extras })
     case "EAT_FOOD":
       enter.food[0]+=1
@@ -368,7 +368,20 @@ const foodDiagram = (
     case 'ADD_NOTES':
       _.each(action.notes, (note) => {
         const [octave, index] = noteIndex(note, current)
-        enter[octave][index] += 1
+        if (current[octave][index] == 0 ||
+            (octave=='food' && [0,2,3,6,7].includes(index)) ||
+            (octave=='air' && [0,2,3,5].includes(index)) ||
+            (octave=='impressions')
+           ) {
+          enter[octave][index] += 1
+          if (index==1) {
+            if (octave=='air') {
+              extras.push('SHOCKS-FOOD')
+            } else if (octave=='impressions') {
+              extras.push('SHOCKS-AIR')
+            }
+          }
+        }
       })
       return { current, enter, extras }
     case 'TAKE_NOTES':
@@ -400,8 +413,8 @@ const foodDiagram = (
         enter.food[2] += 1
       }
       return { current, enter, extras }
-    case 'SHIFT_EXTRA':
-      return { current, enter, extras: extras.slice(1) }
+    case 'CLEAR_EXTRAS':
+      return { current, enter, extras: [] }
     case 'CHANGE_BODY':
       let newFood = current.food[8]
       let newAir = current.air[6]

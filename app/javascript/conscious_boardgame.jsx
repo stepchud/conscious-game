@@ -12,15 +12,27 @@ import ThreeBrains from 'components/being'
 // reducers
 import board from 'reducers/board'
 import cards, { sameSuit } from 'reducers/cards'
-import laws  from 'reducers/laws'
+import laws, { hasnamuss, queenHearts, tenSpades } from 'reducers/laws'
 import fd, { entering, hasNewBody } from 'reducers/food_diagram'
-import ep from 'reducers/being'
+import ep, { rollOptions } from 'reducers/being'
 
 const game = combineReducers({ board, cards, laws, fd, ep })
 const store = createStore(game)
 
 const presentEvent = (event) => {
   switch(event) {
+    case 'DEPUTY-STEWARD':
+      alert('After some time, with the help of magnetic center, a man may find a school.')
+      store.dispatch({ type: 'FOUND_SCHOOL' })
+      break
+    case 'STEWARD':
+      alert('April Fools! You have attained Steward')
+      store.dispatch({ type: 'ATTAIN_STEWARD' })
+      break
+    case 'MASTER':
+      alert('Impartiality! You have attained Master')
+      store.dispatch({ type: 'ATTAIN_MASTER' })
+      break
     case 'MENTAL-BODY':
       alert('You have a mental body')
       break
@@ -140,12 +152,8 @@ const presentEvent = (event) => {
 }
 
 const handleExtras = () => {
-  let extra = store.getState().fd.extras[0]
-  while (extra) {
-    presentEvent(extra)
-    store.dispatch({ type: 'SHIFT_EXTRA' })
-    extra = store.getState().fd.extras[0]
-  }
+  store.getState().fd.extras.forEach(extra => presentEvent(extra))
+  store.dispatch({ type: 'CLEAR_EXTRAS' })
   if (entering(store.getState().fd.enter)) {
     dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' })
   }
@@ -156,18 +164,51 @@ const dispatchWithExtras = (action) => {
   handleExtras()
 }
 
+const handleRollOptions = () => {
+  const active = store.getState().laws.active
+  // HASNAMUSS: no roll-options
+  if (hasnamuss(active)) { return }
+
+  let roll = store.getState().board.roll
+  let options = rollOptions(store.getState().ep.level_of_being)
+  if (options.includes('OPPOSITE')) {
+    if (confirm(`Roll=${roll}, take the opposite roll?`)) {
+      store.dispatch({ type: 'TAKE_OPPOSITE' })
+      return
+    }
+  }
+  if (options.includes('ROLL_AGAIN')) {
+    if (confirm(`Roll=${roll}, roll again?`)) {
+      store.dispatch({ type: 'ROLL_DICE' })
+    }
+  }
+  if (tenSpades(active)) {
+    if (confirm(`Use 10-Spades to roll again?`)) {
+      store.dispatch({ type: 'ROLL_DICE' })
+      store.dispatch({ type: 'REMOVE_ACTIVE', card: '10S' })
+    }
+  }
+  if (queenHearts(active)) {
+    if (confirm(`Use Queen-Hearts to take the opposite?`)) {
+      store.dispatch({ type: 'TAKE_OPPOSITE' })
+      store.dispatch({ type: 'REMOVE_ACTIVE', card: 'QH' })
+    }
+  }
+}
+
 const handlePieces = (action) => {
   store.dispatch(action)
   const pieces = store.getState().cards.pieces
   store.dispatch({ type: 'MAKE_PIECES', pieces })
   store.dispatch({ type: 'CLEAR_PIECES' })
-  let shock = store.getState().ep.shocks[0]
-  while (shock) {
-    presentEvent(shock)
-    store.dispatch({ type: 'SHIFT_SHOCK' })
-    shock = store.getState().ep.shocks[0]
-  }
+  // handle shocks
+  store.getState().ep.shocks.forEach(shock => presentEvent(shock))
+  store.dispatch({ type: 'CLEAR_SHOCKS' })
+  // harnel-miaznel
   dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' })
+  // handle new levels of being
+  store.getState().ep.new_levels.forEach(level => presentEvent(level))
+  store.dispatch({ type: 'CLEAR_NEW_LEVELS' })
 }
 
 const handleLawEvents = () => {
@@ -184,6 +225,8 @@ const actions = {
   onRollClick: () => {
     const before = store.getState().board.position
     store.dispatch({ type: 'ROLL_DICE' })
+    handleRollOptions()
+    store.dispatch({ type: 'MOVE_ROLL' })
     const { position, spaces } = store.getState().board
     for (let s of spaces.substring(before+1, position)) {
       if (s==='L') {
@@ -218,24 +261,20 @@ const actions = {
   onSelectCard: (card) => store.dispatch({ type: 'SELECT_CARD', card }),
   onSelectLawCard: (card) => store.dispatch({ type: 'SELECT_LAW_CARD', card }),
   onSelectPart: (card) => store.dispatch({ type: 'SELECT_PART', card }),
-  onPlaySelected: () => {
-    const hand = store.getState().cards.hand
-    const lawHand = store.getState().laws.hand
-    if (filter(lawHand, (l) => l.played && l.selected).length) { return }
-    handlePieces({ type: 'PLAY_SELECTED', hand, lawHand })
-  },
+  onPlaySelected: (hand, lawHand) => handlePieces({ type: 'PLAY_SELECTED', hand, lawHand }),
   onObeyLaw: handleLawEvents,
   onEatFood: () => dispatchWithExtras({ type: 'EAT_FOOD' }),
   onBreatheAir: () => dispatchWithExtras({ type: 'BREATHE_AIR' }),
   onTakeImpression: () => dispatchWithExtras({ type: 'TAKE_IMPRESSION' }),
   onSelfRemember: () => dispatchWithExtras({ type: 'SELF_REMEMBER' }),
-  onTransformEmotions: () => dispatchWithExtras({ type: 'TRANSFORM_EMOTIONS' }),
+  onCombineSelectedParts: (selected) => handlePieces({ type: 'COMBINE_PARTS', selected }),
   onAdvanceFoodDiagram: () => dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' }),
   onChangeBody: () => dispatchWithExtras({ type: 'CHANGE_BODY' }),
 }
 
 const ConsciousBoardgame = () => {
   const { board, cards, laws, fd, ep } = store.getState()
+
   return (
     <div>
       <Buttons
@@ -243,6 +282,7 @@ const ConsciousBoardgame = () => {
         roll={board.roll}
         cards={cards.hand}
         lawCards={laws.hand}
+        parts={ep.parts}
         newBody={hasNewBody(fd.current)}
       />
       <Board {...board} />

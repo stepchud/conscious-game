@@ -17,13 +17,17 @@
 .cards {
   margin-bottom: 15px;
   .card {
-    border: 1px solid black;
+    border: 2px solid black;
     padding: 8px 4px;
     margin-right: 3px;
     display: inline-block;
     &.selected {
-      border: 2px dotted black;
+      border: 2px dashed black;
       font-weight: bold;
+    }
+    &.law {
+      min-height: 22px;
+      vertical-align: bottom;
     }
   }
 }

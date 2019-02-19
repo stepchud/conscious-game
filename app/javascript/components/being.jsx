@@ -7,6 +7,7 @@ import { Card } from 'components/cards'
 const ThreeBrains = ({
   parts,
   pieces,
+  level_of_being,
   onSelect,
 }) => {
   const createCard = (c, i) => {
@@ -15,27 +16,32 @@ const ThreeBrains = ({
   }
   const mapPiece = (n) => `[${pad(repeat('*', n), 2)}]`
   return (
-    <div className="cards being">
-      <pre>
-        <h3>
-          {parts.slice(12).map(createCard)}
-        </h3>
-        <h3>
-          {pieces.slice(12).map(mapPiece)}
-        </h3>
-        <h3>
-          {parts.slice(6, 12).map(createCard)}
-        </h3>
-        <h3>
-          {pieces.slice(6, 12).map(mapPiece)}
-        </h3>
-        <h3>
-          {parts.slice(0, 6).map(createCard)}
-        </h3>
-        <h3>
-          {pieces.slice(0, 6).map(mapPiece)}
-        </h3>
-      </pre>
+    <div>
+      <div className="lob">
+        Level of Being: {level_of_being}
+      </div>
+      <div className="cards being">
+        <pre>
+          <h3>
+            {parts.slice(12).map(createCard)}
+          </h3>
+          <h3>
+            {pieces.slice(12).map(mapPiece)}
+          </h3>
+          <h3>
+            {parts.slice(6, 12).map(createCard)}
+          </h3>
+          <h3>
+            {pieces.slice(6, 12).map(mapPiece)}
+          </h3>
+          <h3>
+            {parts.slice(0, 6).map(createCard)}
+          </h3>
+          <h3>
+            {pieces.slice(0, 6).map(mapPiece)}
+          </h3>
+        </pre>
+      </div>
     </div>
   )
 }
