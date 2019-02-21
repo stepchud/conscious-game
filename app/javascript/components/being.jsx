@@ -8,6 +8,10 @@ const ThreeBrains = ({
   parts,
   pieces,
   level_of_being,
+  card_plays,
+  transforms,
+  wild_shock,
+  all_shocks,
   onSelect,
 }) => {
   const createCard = (c, i) => {
@@ -18,7 +22,11 @@ const ThreeBrains = ({
   return (
     <div>
       <div className="lob">
-        Level of Being: {level_of_being}
+        Level: {level_of_being},
+        Card plays: {card_plays},
+        Transform: {transforms},
+        Wild: {wild_shock},
+        All: {all_shocks}
       </div>
       <div className="cards being">
         <pre>

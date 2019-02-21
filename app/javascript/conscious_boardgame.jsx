@@ -267,6 +267,7 @@ const actions = {
   onBreatheAir: () => dispatchWithExtras({ type: 'BREATHE_AIR' }),
   onTakeImpression: () => dispatchWithExtras({ type: 'TAKE_IMPRESSION' }),
   onSelfRemember: () => dispatchWithExtras({ type: 'SELF_REMEMBER' }),
+  onTransformEmotions: () => dispatchWithExtras({ type: 'TRANSFORM_EMOTIONS' }),
   onCombineSelectedParts: (selected) => handlePieces({ type: 'COMBINE_PARTS', selected }),
   onAdvanceFoodDiagram: () => dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' }),
   onChangeBody: () => dispatchWithExtras({ type: 'CHANGE_BODY' }),

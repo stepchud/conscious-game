@@ -297,13 +297,12 @@ const foodDiagram = (
       return {
         current,
         enter: {
+          ...enter,
           food: [
             ...enter.food.slice(0,3),
             enter.food[3]+1,
             ...enter.food.slice(4)
           ],
-          air: enter.air,
-          impressions: enter.impressions
         },
         extras
       }
@@ -311,25 +310,27 @@ const foodDiagram = (
       return {
         current,
         enter: {
-          food: enter.food,
+          ...enter,
           air: [
             ...enter.air.slice(0,3),
             enter.air[3]+1,
             ...enter.air.slice(4)
           ],
-          impressions: enter.impressions
         },
         extras
       }
     case "CARBON_12":
-      enter.impressions[1]+=1
-      extras.push("SHOCKS-AIR")
+      enter.impressions[1]++
+      if (current.air[2]) {
+        enter.air[3]++
+        current.air[2]--
+      }
       return { current, enter, extras }
     case "SELF_REMEMBER":
       if (current.impressions[0]>0) {
         current.impressions[0]--
         enter.impressions[1]++
-        extras.push("SHOCKS-AIR")
+        extras.push('SHOCKS-AIR')
       } else {
         extras.push("NOTHING-TO-REMEMBER")
       }
