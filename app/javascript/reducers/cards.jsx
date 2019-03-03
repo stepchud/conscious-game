@@ -92,11 +92,17 @@ export const playable = (selected) => {
 export const combinable = (parts) => {
   if (parts.length != 2) { return false }
   if (parts.includes('JO')) { return false }
-  if (parts.includes('XJ') && parts.includes('AS')) { return true }
-  if (rank(parts[0]) === 'A' && rank(parts[1]) === 'A') {
-    return suit(parts[0]) != 'S' && suit(parts[1]) != 'S'
+  if (parts.includes('XJ') && parts.includes('AS')) {
+    return 'all_shocks'
   }
-  return sameSuit(...parts) && isFace(parts[0]) && isFace(parts[1])
+  if (rank(parts[0]) === 'A' && rank(parts[1]) === 'A' && suit(parts[0]) != 'S' && suit(parts[1]) != 'S') {
+    return 'wild_shock'
+  }
+  if (sameSuit(...parts) && isFace(parts[0]) && isFace(parts[1])) {
+    return 'transforms'
+  }
+
+  return false
 }
 
 export const makeFaceCard = (cards) => {
@@ -115,14 +121,15 @@ export const makeFaceCard = (cards) => {
   }
 }
 export const makeNewPart = (parts) => {
-  if (!combinable(parts)) { return }
-  // they can be combined
-  if (rankInt(parts[0]) < 14) {
-    return 'A'+suit(parts[0])
-  } else if (parts.includes('XJ')) {
-    return 'JO'
-  } else {
-    return 'XJ'
+  switch(combinable(parts)) {
+    case 'transforms':
+      return 'A'+suit(parts[0])
+    case 'wild_shock':
+      return 'XJ'
+    case 'all_shocks':
+      return 'JO'
+    default:
+      return
   }
 }
 
@@ -158,6 +165,22 @@ const cards = (
         discards: nextDiscards,
         hand: sortedHand(hand.concat({ c: nextDeck[0], selected: false })),
       }
+    case 'START_GAME':
+      return {
+        ...state,
+        deck: deck.slice(7),
+        hand: sortedHand(
+          hand.concat([
+            { c: deck[0], selected: false },
+            { c: deck[1], selected: false },
+            { c: deck[2], selected: false },
+            { c: deck[3], selected: false },
+            { c: deck[4], selected: false },
+            { c: deck[5], selected: false },
+            { c: deck[6], selected: false },
+          ])
+        )
+      }
     case 'SELECT_CARD':
       const card = hand[action.card]
       const nextHand = [
@@ -170,15 +193,12 @@ const cards = (
         hand: nextHand,
       }
     case 'PLAY_SELECTED':
-      const cards = action.hand
-      const lawCards = action.lawHand
-      const pieces = makeFaceCard(cards.concat(lawCards))
-      if (!pieces) { return state }
+      if (!action.pieces) { return state }
 
       return {
         ...state,
-        pieces,
-        discards: [...discards, ...cards],
+        pieces: action.pieces,
+        discards: [...discards, ...action.cards],
         hand: hand.filter(c => !c.selected),
       }
     case 'COMBINE_PARTS':

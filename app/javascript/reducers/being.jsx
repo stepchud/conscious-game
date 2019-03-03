@@ -62,6 +62,7 @@ const beginTurnState = (lob) => {
         transforms: 1,
         wild_shock: 0,
         all_shocks: 0,
+        bwe: true,
       }
     case 'STEWARD':
       return {
@@ -69,6 +70,8 @@ const beginTurnState = (lob) => {
         transforms: 1,
         wild_shock: 1,
         all_shocks: 0,
+        bwe: true,
+        ewb: true,
       }
     case 'MASTER':
       return {
@@ -76,6 +79,9 @@ const beginTurnState = (lob) => {
         transforms: 1,
         wild_shock: 1,
         all_shocks: 1,
+        bwe: true,
+        ewb: true,
+        c12: true,
       }
     default:
       throw('Unknown Level of Being: '+lob)
@@ -85,12 +91,11 @@ const beginTurnState = (lob) => {
 export const selectedParts = (parts) => map(filter(parts.slice(0,17), 'selected'), 'c')
 
 export const rollOptions = (lob) => {
-  if ('STEWARD' === lob) {
-    return ['ROLL_AGAIN']
-  } else if ('MASTER' === lob) {
-    return ['ROLL_AGAIN', 'OPPOSITE']
+  switch(lob) {
+    case 'STEWARD': return ['ROLL_AGAIN']
+    case  'MASTER': return ['ROLL_AGAIN', 'OPPOSITE']
+    default: return []
   }
-  return []
 }
 
 const ep = (
@@ -103,9 +108,13 @@ const ep = (
     wild_shock: 0,
     all_shocks: 0,
     level_of_being: 'MULTIPLICITY',
+    new_levels: [],
     awake: true,
     powers: true,
     skills: true,
+    bwe: false,
+    ewb: false,
+    c12: false,
   },
   action
 ) => {
@@ -117,10 +126,32 @@ const ep = (
     card_plays,
   } = state
   switch(action.type) {
-    case 'BEGIN_TURN':
+    case 'ROLL_AFTER_DEATH':
+    case 'ROLL_DICE':
       return {
         ...state,
         ...beginTurnState(level_of_being)
+      }
+    case 'PLAY_SELECTED':
+      if (!action.pieces) { return state }
+      return {
+        ...state,
+        card_plays: card_plays - action.cards.length,
+      }
+    case 'EAT_WHEN_YOU_BREATHE':
+      return {
+        ...state,
+        ewb: false,
+      }
+    case 'BREATHE_WHEN_YOU_EAT':
+      return {
+        ...state,
+        bwe: false,
+      }
+    case 'CARBON_12':
+      return {
+        ...state,
+        c12: false,
       }
     case 'SELECT_PART':
       if (pieces[action.card]) {
@@ -170,24 +201,24 @@ const ep = (
     case 'MAGNETIC_CENTER_MOMENT':
       return {
         ...state,
-        card_plays: state.card_plays + 1,
+        card_plays: card_plays + 1,
       }
     case 'FOUND_SCHOOL':
       return {
         ...state,
-        card_plays: state.card_plays + 1,
+        card_plays: card_plays + 1,
         transforms: state.transforms + 1,
       }
     case 'ATTAIN_STEWARD':
       return {
         ...state,
-        card_plays: state.card_plays + 1,
+        card_plays: card_plays + 1,
         wild_shock: state.wild_shock + 1,
       }
     case 'ATTAIN_MASTER':
       return {
         ...state,
-        card_plays: state.card_plays + 1,
+        card_plays: card_plays + 1,
         all_shocks: state.all_shocks + 1,
       }
     case 'CLEAR_NEW_LEVELS':
@@ -199,6 +230,11 @@ const ep = (
       return {
         ...state,
         [action.lost]: true,
+      }
+    case 'START_GAME':
+      return {
+        ...state,
+        card_plays: card_plays + 1,
       }
     default:
       return state

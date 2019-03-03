@@ -6,6 +6,7 @@ const STARTING_SPACES =
   'FCAACICCFAICFFACICAIFCCFICACFALLCCFACCCFICFCAICCI' +
   'AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF' +
   'CCIACFACILCAFFCCAIAFCCIACFFICCCAICCFCALLCCAAFCIC*'
+const LAST_SPACE = STARTING_SPACES.length - 1
 
 
 export const Dice = (sides=10, zero=true) => {
@@ -29,27 +30,45 @@ const board = (
     roll: 0,
     position: 0,
     spaces: STARTING_SPACES,
+    death_space: LAST_SPACE,
+    death_turn: false,
+    completed_trip: false,
   },
   action
 ) => {
-  const { roll, position } = state
+  const { roll, position, dice, death_space } = state
   switch(action.type) {
+    case 'ROLL_AFTER_DEATH':
     case 'ROLL_DICE':
       return {
         ...state,
-        roll: state.dice.roll(),
+        roll: dice.roll(),
       }
     case 'TAKE_OPPOSITE':
       return {
         ...state,
-        roll: state.dice.opposite(roll)
+        roll: dice.opposite(roll)
+      }
+    case 'DEATH_SPACE':
+      return {
+        ...state,
+        death_space: Math.min(death_space, position + action.in)
       }
     case 'MOVE_ROLL':
-      if (position + roll >= state.spaces.length) {
+      const new_position = position + roll >= LAST_SPACE ? LAST_SPACE : position + roll
+      if (state.death_turn) {
         return {
           ...state,
+          position: new_position == LAST_SPACE ? roll : new_position,
+          completed_trip: new_position == LAST_SPACE,
+          death_turn: false,
+          death_space: LAST_SPACE
+        }
+      } else if (new_position >= death_space) {
+        return {
+          ...state,
+          death_turn: true,
           spaces: convertToDeath(state.spaces),
-          position: 0
         }
       } else {
         return {

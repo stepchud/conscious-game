@@ -4,6 +4,7 @@ import { combineReducers, createStore} from 'redux'
 import { filter, map, includes } from 'lodash'
 
 import Buttons from 'components/buttons'
+import TestButtons from 'components/test_buttons'
 import Board   from 'components/board'
 import { CardHand, LawHand } from 'components/cards'
 import FoodDiagram, { processExtra } from 'components/food'
@@ -11,7 +12,7 @@ import ThreeBrains from 'components/being'
 
 // reducers
 import board from 'reducers/board'
-import cards, { sameSuit } from 'reducers/cards'
+import cards, { sameSuit, makeFaceCard } from 'reducers/cards'
 import laws, { hasnamuss, queenHearts, tenSpades } from 'reducers/laws'
 import fd, { entering, hasNewBody } from 'reducers/food_diagram'
 import ep, { rollOptions } from 'reducers/being'
@@ -99,14 +100,16 @@ const presentEvent = (event) => {
       alert('No 12')
       break
     case 'MI-48':
-      if (confirm('Eat when you breathe?')) {
+      const ewb = store.getState().ep.ewb
+      if (ewb && confirm('Eat when you breathe?')) {
         store.dispatch({type: 'EAT_WHEN_YOU_BREATHE'})
       } else {
         store.dispatch({type: 'LEAVE_MI_48'})
       }
       break
     case 'DO-48':
-      if (confirm('Carbon-12?')) {
+      const c12 = store.getState().ep.c12
+      if (c12 && confirm('Carbon-12?')) {
         store.dispatch({type: 'CARBON_12'})
       } else {
         store.dispatch({type: 'LEAVE_DO_48'})
@@ -119,7 +122,8 @@ const presentEvent = (event) => {
       alert('No 24')
       break
     case 'MI-192':
-      if (confirm('Breathe when you eat?')) {
+      const bwe = store.getState().ep.bwe
+      if (bwe && confirm('Breathe when you eat?')) {
         store.dispatch({type: 'BREATHE_WHEN_YOU_EAT'})
       } else {
         store.dispatch({type: 'LEAVE_MI_192'})
@@ -223,15 +227,19 @@ const handleLawEvents = () => {
 // actions
 const actions = {
   onRollClick: () => {
-    const before = store.getState().board.position
-    store.dispatch({ type: 'ROLL_DICE' })
+    const { position: position_before, death_turn } = store.getState().board
+    if (death_turn) {
+      dispatchWithExtras({ type: 'ROLL_AFTER_DEATH' })
+    } else {
+      store.dispatch({ type: 'ROLL_DICE' })
+    }
     handleRollOptions()
     store.dispatch({ type: 'MOVE_ROLL' })
     const { position, spaces } = store.getState().board
-    for (let s of spaces.substring(before+1, position)) {
+    for (let s of spaces.substring(position_before+1, position)) {
       if (s==='L') {
-        console.log("passed a law")
         store.dispatch({ type: 'DRAW_LAW_CARD' })
+        store.dispatch({ type: 'PASS_LAW' })
       }
     }
     switch(spaces[position]) {
@@ -261,7 +269,11 @@ const actions = {
   onSelectCard: (card) => store.dispatch({ type: 'SELECT_CARD', card }),
   onSelectLawCard: (card) => store.dispatch({ type: 'SELECT_LAW_CARD', card }),
   onSelectPart: (card) => store.dispatch({ type: 'SELECT_PART', card }),
-  onPlaySelected: (hand, lawHand) => handlePieces({ type: 'PLAY_SELECTED', hand, lawHand }),
+  onPlaySelected: (cards, lawCards) => handlePieces({
+    type: 'PLAY_SELECTED',
+    cards,
+    pieces: makeFaceCard(cards.concat(lawCards))
+  }),
   onObeyLaw: handleLawEvents,
   onEatFood: () => dispatchWithExtras({ type: 'EAT_FOOD' }),
   onBreatheAir: () => dispatchWithExtras({ type: 'BREATHE_AIR' }),
@@ -271,6 +283,11 @@ const actions = {
   onCombineSelectedParts: (selected) => handlePieces({ type: 'COMBINE_PARTS', selected }),
   onAdvanceFoodDiagram: () => dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' }),
   onChangeBody: () => dispatchWithExtras({ type: 'CHANGE_BODY' }),
+  onRandomLaw: () => {
+    store.dispatch({ type: 'ROLL_DICE' })
+    store.dispatch({ type: "ONE_BY_RANDOM", roll: store.getState().board.roll })
+  },
+  onChooseLaw: (card) => store.dispatch({ type: "ONE_BY_CHOICE", card }),
 }
 
 const ConsciousBoardgame = () => {
@@ -282,13 +299,19 @@ const ConsciousBoardgame = () => {
         actions={actions}
         roll={board.roll}
         cards={cards.hand}
-        lawCards={laws.hand}
+        lawCards={laws.in_play}
+        being={ep}
+        death_turn={board.death_turn}
+      />
+      <TestButtons
+        actions={actions}
+        cards={cards.hand}
+        lawCards={laws.in_play}
         parts={ep.parts}
-        newBody={hasNewBody(fd.current)}
       />
       <Board {...board} />
       <CardHand cards={cards.hand} onSelect={actions.onSelectCard} />
-      <LawHand laws={laws} onSelect={actions.onSelectLawCard} />
+      <LawHand laws={laws} onSelect={actions.onSelectLawCard} onRandom={actions.onRandomLaw} onChoice={actions.onChooseLaw} />
       <FoodDiagram {...fd} store={store} />
       <ThreeBrains {...ep} onSelect={actions.onSelectPart} />
     </div>
@@ -302,6 +325,7 @@ const render = () => {
   )
 }
 
+store.dispatch({ type: 'START_GAME' })
 store.subscribe(render)
 
 document.addEventListener('DOMContentLoaded', () => { render() })

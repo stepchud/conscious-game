@@ -5,8 +5,9 @@ const InitialState = {
     food:        [1,1,1,0,0,0,0,0,0],
     air:         [1,1,1,0,0,0,0],
     impressions: [1,0,0,0,0],
+    alive:  true,
     astral: false,
-    mental: false
+    mental: false,
   },
   enter: {
     food:        [0,0,0,0,0,0,0,0],
@@ -81,6 +82,10 @@ const noteIndex = (note, current) => {
 }
 export const hasNewBody = (fd) =>
   fd.food[8]>=3 && fd.air[6]>=3 && fd.impressions[4]>=1 && !fd.mental
+
+export const survivesDeath = (fd, completed_trip) => {
+  fd.mental || (fd.astral && (fd.alive || !completed_trip))
+}
 
 export const entering = (enter) =>
   _.some([...enter.food, ...enter.air, ...enter.impressions])
@@ -449,6 +454,9 @@ const foodDiagram = (
           newImpressions--
         }
       }
+      return { current, enter, extras }
+    case 'ROLL_AFTER_DEATH':
+      current.alive = false
       return { current, enter, extras }
     default:
       return state
