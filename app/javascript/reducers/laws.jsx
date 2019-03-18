@@ -1,4 +1,4 @@
-import { each, map, filter, reject, shuffle, some, isEmpty } from 'lodash'
+import { each, map, filter, reject, shuffle, some } from 'lodash'
 
 import {
   selectedCards,
@@ -167,7 +167,6 @@ const LAW_CARDS = [
     "card": "2C",
     "text": "TAKE THE LAW CARD FROM THE\nTOP THAT EQUALS YOUR TYPE\nAND OBEY IT WITHOUT ESCAPE\n(DISCARD LAWS IN BETWEEN).",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 22},
       {type: 'OBEY_WITHOUT_ESCAPE', card: '2C'}
     ]
   },
@@ -460,7 +459,6 @@ const LAW_CARDS = [
     "card": "2S",
     "text": "TAKE ONE LAW CARD FROM\nTHE TOP, WHICH EVERYONE\nMUST OBEY WITHOUT ESCAPE.",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 62},
       {type: 'OBEY_WITHOUT_ESCAPE', card: '2S'}
     ]
   },
@@ -626,14 +624,21 @@ const LAW_CARDS = [
   }
 ]
 
+const KD_INDEX=20
+const KC_INDEX=42
+const KH_INDEX=60
+const KS_INDEX = 81
+
 export const lawAtIndex = (law) => LAW_CARDS[law.index]
 export const selectedLaws = (cards) => map(filter(cards, 'selected'), 'c.card')
 export const hasnamuss = (active) => active.includes(a => a.index == 84)
 export const queenHearts = (active) => active.includes(a => a.index == 59)
 export const tenSpades = (active) => active.includes(a => a.index == 77)
 
-const activeKings = (active) => map(filter(active, (c) => [20,42,60,81].includes(c.index)), lawAtIndex)
-const isLaw2    = (law) => 22===law.index || 62===law.index
+const activeKings = (active) => map(
+         filter(active, (c) => [ KD_INDEX, KC_INDEX, KH_INDEX, KS_INDEX ].includes(c.index)),
+  lawAtIndex
+)
 const isLawCard = (card) => {
   if (card == '10S') {
     return (law) => law.index == 77
@@ -644,25 +649,48 @@ const isLawCard = (card) => {
 const isLawSuit = (suit) => {
   switch(suit) {
     case 'D':
-      return (law) => law.index<22 && law.index!=20
+      return (law) => law.index < 22 && law.index != KD_INDEX && !law.protected
     case 'C':
-      return (law) => law.index>=22 && law.index<44 && law.index!=42
+      return (law) => law.index >= 22 && law.index < 44 && law.index != KC_INDEX && law.protected != '2S'
     case 'H':
-      return (law) => law.index>=44 && law.index<62 && law.index!=60
+      return (law) => law.index >= 44 && law.index < 62 && law.index != KH_INDEX && !law.protected
     case 'S':
-      return (law) => law.index>=62 && law.index<83 && law.index!=81
+      return (law) => law.index >= 62 && law.index < 83 && law.index != KS_INDEX && law.protected != '2C'
+  }
+}
+
+const drawLawCard = (preDeck, preDisc) => {
+  let deck, discards
+  if (preDeck.length == 0) {
+    deck = shuffle(preDisc)
+    discards = []
+  } else {
+    deck = preDeck
+    discards = preDisc
+  }
+  return {
+    law: deck[0],
+    deck: deck.slice(1),
+    discards,
   }
 }
 
 const generateLawDeck = () => {
-  return LAW_CARDS.slice(62)
+  const newDeck = LAW_CARDS.slice(62)
+  let temp = newDeck[1]
+  newDeck[1] = newDeck[19]
+  newDeck[19] = temp
+  temp = newDeck[3]
+  newDeck[3] = newDeck[15]
+  newDeck[15] = temp
+  return newDeck
 }
 
 const laws = (
   state = {
+    deck: [],
     hand: [],
     active: [],
-    deck: generateLawDeck(),
     discards: [],
     by_random: true,
     by_choice: true,
@@ -679,33 +707,24 @@ const laws = (
     discards,
   } = state
   switch(action.type) {
-    case 'DRAW_LAW_CARD':
-      let nextDeck, nextDiscards
-      if (isEmpty(deck)) {
-        nextDeck = shuffle(discards)
-        nextDiscards = []
-      } else {
-        nextDeck = deck
-        nextDiscards = discards
-      }
-      if (nextDeck.length == 0) {
-        console.log("deck is empty.")
-        return state
-      }
+    case 'DRAW_LAW_CARD': {
+      const { law, deck: nextDeck, discards: nextDiscards } = drawLawCard(deck, discards)
       return {
         ...state,
-        deck: nextDeck.slice(1),
+        deck: nextDeck,
         discards: nextDiscards,
-        hand: hand.concat({ c: nextDeck[0], selected: false }),
+        hand: hand.concat({ c: law, selected: false }),
       }
+    }
     case 'START_GAME':
+      const newDeck = generateLawDeck()
       return {
         ...state,
-        deck: deck.slice(3),
+        deck: newDeck.slice(3),
         hand: hand.concat([
-          { c: deck[0], selected: false },
-          { c: deck[1], selected: false },
-          { c: deck[2], selected: false }
+          { c: newDeck[0], selected: false },
+          { c: newDeck[1], selected: false },
+          { c: newDeck[2], selected: false }
         ])
       }
     case 'SELECT_LAW_CARD':
@@ -739,6 +758,29 @@ const laws = (
         hand: hand.filter((v, idx) => idx != chosenIndex),
         by_choice: false,
       }
+    case 'OBEY_WITHOUT_ESCAPE': {
+      if (action.card == '2S') {
+        const draw = drawLawCard(deck, discards)
+        return {
+          ...state,
+          in_play: in_play.concat({ c: draw.law, selected: false, no_escape: '2S' }),
+          deck: draw.deck,
+          discards: draw.discards,
+        }
+      } else if (action.card == '2C') {
+        let draw = drawLawCard(deck, discards)
+        for (let i=1; i<action.being_type; i++) {
+          draw = drawLawCard(draw.deck, draw.discards.concat(draw.law))
+        }
+
+        return {
+          ...state,
+          in_play: in_play.concat({ c: draw.law, selected: false, no_escape: '2C' }),
+          deck: draw.deck,
+          discards: draw.discards,
+        }
+      }
+    }
     case 'PLAY_SELECTED':
       if (!action.pieces) { return state }
 
@@ -791,13 +833,12 @@ const laws = (
         }),
       }
 
-      let actions = lawCard.c.actions
-      if (filter(active, isLaw2).length) {
+      const actions = lawCard.c.actions
+      if (lawCard.no_escape) {
         console.log("no escape!")
-        actions = actions.concat({type: 'REMOVE_ACTIVE', rank: '2'})
         each(
           filter(actions, c => c.type == 'ACTIVE_LAW'),
-          c => c.no_escape = true
+          c => c.protected = lawCard.no_escape
         )
       } else if (some(activeKings(active), (k) => sameSuit(k.card, lawCard.c.card))) {
         console.log("Moon escapes! ", lawCard)
@@ -812,20 +853,29 @@ const laws = (
     case 'ACTIVE_LAW':
       return {
         ...state,
-        active: active.concat({index: action.card, protected: !!action.no_escape}),
+        active: active.concat({index: action.card, protected: action.protected}),
       }
     case 'REMOVE_ACTIVE':
       let filterFunc
-      if (action.rank=='2') {
-        filterFunc = isLaw2
-      } else if (action.suit) {
+      let removeProtected = unit => unit
+      if (action.suit) {
+        // king moon
         filterFunc = isLawSuit(action.suit)
+        removeProtected = c => {
+          if ((action.suit == 'C' && c.protected == '2C') ||
+              (action.suit == 'S' && c.protected == '2S')) {
+            delete c.protected
+          }
+          return c
+        }
       } else if (action.card) {
+        // roll option cards
         filterFunc = isLawCard(action.card)
       }
+      const filteredActive = map(reject(active, filterFunc), removeProtected)
       return {
         ...state,
-        active: reject(active, filterFunc),
+        active: filteredActive,
       }
     case 'CANCEL_ALL_LAWS':
       const newActive = map(filter(active, 'protected'), l => ({ index: l.index, protected: false }))

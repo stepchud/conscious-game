@@ -1,5 +1,6 @@
 import { map, filter } from 'lodash'
 import { sameSuit, makeNewPart } from 'reducers/cards'
+import { sixSides } from 'reducers/board'
 
 const PARTS = [
   "JD","QD","KD","JC","QC","KC",
@@ -100,6 +101,7 @@ export const rollOptions = (lob) => {
 
 const ep = (
   state = {
+    being_type: sixSides.roll(),
     parts: PARTS.map(mapParts),
     pieces: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
     shocks: [],
@@ -127,7 +129,7 @@ const ep = (
   } = state
   switch(action.type) {
     case 'ROLL_AFTER_DEATH':
-    case 'ROLL_DICE':
+    case 'END_TURN':
       return {
         ...state,
         ...beginTurnState(level_of_being)

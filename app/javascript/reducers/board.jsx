@@ -16,8 +16,8 @@ export const Dice = (sides=10, zero=true) => {
 
   return { roll, opposite }
 }
-const tenSides = Dice(10, true)
-const sixSides = Dice(6, false)
+export const tenSides = Dice(10, true)
+export const sixSides = Dice(6, false)
 
 const convertToDeath = (spaces) => {
   const deathSpaces = spaces.replace(/L/g, '*').replace(/C/g, 'D');

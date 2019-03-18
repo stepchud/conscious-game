@@ -216,9 +216,10 @@ const handlePieces = (action) => {
 }
 
 const handleLawEvents = () => {
+  const { being_type } = store.getState().ep
   store.dispatch({ type: 'OBEY_LAW' })
   for (let lawAction of store.getState().laws.actions) {
-    store.dispatch(lawAction)
+    store.dispatch(Object.assign({ being_type }, lawAction))
   }
   store.dispatch({ type: 'CLEAR_ACTIONS' })
   handleExtras()
@@ -231,6 +232,7 @@ const actions = {
     if (death_turn) {
       dispatchWithExtras({ type: 'ROLL_AFTER_DEATH' })
     } else {
+      store.dispatch({ type: 'END_TURN' })
       store.dispatch({ type: 'ROLL_DICE' })
     }
     handleRollOptions()
@@ -283,10 +285,10 @@ const actions = {
   onCombineSelectedParts: (selected) => handlePieces({ type: 'COMBINE_PARTS', selected }),
   onAdvanceFoodDiagram: () => dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' }),
   onChangeBody: () => dispatchWithExtras({ type: 'CHANGE_BODY' }),
-  onRandomLaw: () => {
-    store.dispatch({ type: 'ROLL_DICE' })
-    store.dispatch({ type: "ONE_BY_RANDOM", roll: store.getState().board.roll })
-  },
+  onRandomLaw: () => store.dispatch({
+    type: "ONE_BY_RANDOM",
+    roll: store.getState().board.dice.roll()
+  }),
   onChooseLaw: (card) => store.dispatch({ type: "ONE_BY_CHOICE", card }),
 }
 

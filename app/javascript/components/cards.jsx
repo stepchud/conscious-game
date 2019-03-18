@@ -5,10 +5,10 @@ import { lawAtIndex } from 'reducers/laws'
 
 export const Card = ({
   card,
-  onClick
+  onClick,
 }) => {
   const classes = `card ${card.selected ? 'selected' : ''}`
-  return <span className={classes} onClick={onClick}>
+  return <span className={classes} onClick={onClick} onKeyDown={onClick} tabIndex='0'>
     {card.c}
   </span>
 }
@@ -30,7 +30,7 @@ const LawCard = ({
 }) => {
   const classes = `card law ${card.selected ? 'selected' : ''}`
   return (
-    <span title={card.c.text} className={classes} onClick={onClick}>
+    <span title={card.c.text} className={classes} onClick={onClick} tabIndex='0'>
       {card.c.card}
       <sup>
         {card.obeyed ? 'o' : '\u00A0'}
@@ -45,7 +45,7 @@ export const CardHand = ({
   onSelect,
 }) => {
   const hand = cards.length ? (
-    map(cards, (c, i) => <Card key={i} card={c} onClick={() => onSelect(i)} />)
+    map(cards, (c, i) => <Card key={i} card={c} onClick={() => onSelect(i)} tabIndex='0' />)
   ) : (
     <span>Empty Card Hand</span>
     )
@@ -102,7 +102,7 @@ export const LawHand = ({
       <div className="inplay laws">
         {!!laws.in_play.length && <span>In play:</span>}
         {!!laws.in_play.length && map(laws.in_play, (c, i) =>
-          <LawCard key={i} card={c} onClick={() => onSelect(i)} />
+          <LawCard key={i} card={c} onClick={() => onSelect(i)} tabIndex='0' />
         )}
       </div>
     </div>
