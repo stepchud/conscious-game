@@ -1,7 +1,7 @@
 import React from 'react'
 import { pad, repeat, findIndex } from 'lodash'
 
-import { spaces, s2, s3, notMouseOrEnter } from 'components/utils'
+import { spaces, s2, s3, clickOrReturn } from 'components/utils'
 import { Card } from 'components/cards'
 
 const ThreeBrains = ({
@@ -16,7 +16,7 @@ const ThreeBrains = ({
 }) => {
   const createCard = (c, i) => {
     const selected = parts ? findIndex(parts, (p) => p.c == c.c ) : i
-    const onClick = (e) => notMouseOrEnter(e) || onSelect(selected)
+    const onClick = (e) => clickOrReturn(e) && onSelect(selected)
     return <Card key={i} card={c} onClick={onClick} tabIndex='0' />
   }
   const mapPiece = (n) => `[${pad(repeat('*', n), 2)}]`

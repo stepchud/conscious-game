@@ -1,9 +1,10 @@
 import React from 'react'
-import { map, some } from 'lodash'
+import { map } from 'lodash'
 
 import { combinable, playable, selectedCards } from 'reducers/cards'
-import { selectedLaws } from 'reducers/laws'
+import { selectedLaws, selectedPlayedLaws, unobeyedLaws } from 'reducers/laws'
 import { selectedParts } from 'reducers/being'
+import { TURNS } from 'reducers/board'
 
 const Buttons = ({
   actions,
@@ -11,26 +12,57 @@ const Buttons = ({
   being,
   cards,
   lawCards,
-  death_turn }) => {
+  currentTurn }) => {
   const selCards = selectedCards(cards)
   const selLaws = selectedLaws(lawCards)
+  const selLawCards = map(selLaws, 'c.card')
   const selParts = selectedParts(being.parts)
-  const cardsPlay = selCards.length <= being.card_plays &&
-    playable(selCards.concat(selLaws)) &&
-    !some(selLaws, 'played')
+  const cardsPlay =
+    selCards.length <= being.card_plays &&
+    playable(selCards.concat(selLawCards)) &&
+    !selectedPlayedLaws(lawCards).length
+
+  const buttons = []
+  if (currentTurn===TURNS.randomLaw) {
+    buttons.push(<button key={buttons.length} onClick={() => { actions.onRandomLaw() }}>One by random...</button>)
+  } else if (currentTurn===TURNS.choiceLaw) {
+    buttons.push(<span key={buttons.length}>Pick a law card:</span>)
+  } else {
+    if (unobeyedLaws(lawCards).length) {
+      buttons.push(<span key={buttons.length}>* You simply must obey all of the laws in play</span>)
+    } else {
+      buttons.push(currentTurn===TURNS.death ?
+        <button key={buttons.length} onClick={actions.onFinishDeath}>Finish Death</button> :
+        <button key={buttons.length} onClick={actions.onRollClick}>Roll Dice</button>
+      )
+    }
+    if (being[combinable(selParts)]) {
+      buttons.push(
+        <button
+          key={buttons.length}
+          onClick={() => { actions.onCombineSelectedParts(selParts)} }>
+          Combine Parts
+        </button>
+      )
+    }
+    if (cardsPlay) {
+      buttons.push(
+        <button
+          key={buttons.length}
+          onClick={() => { actions.onPlaySelected(selCards, selLawCards)} }>
+          Play Cards
+        </button>
+      )
+    }
+    if (selLaws.length===1 && !selLaws[0].obeyed) {
+      buttons.push(<button key={buttons.length} onClick={actions.onObeyLaw}>Obey Law</button>)
+    }
+  }
+
   return (
     <div className="actions">
       <span className="dice">{roll}</span>
-      { death_turn ?
-        <button onClick={actions.onFinishDeath}>Finish Death</button> :
-        <button onClick={actions.onRollClick}>Roll Dice</button>
-      }
-      { being[combinable(selParts)] &&
-        <button onClick={() => { actions.onCombineSelectedParts(selParts)} }>Combine Parts</button> }
-      { cardsPlay &&
-        <button onClick={() => { actions.onPlaySelected(selCards, selLaws)} }>Play Cards</button> }
-      { selectedLaws(lawCards).length===1 &&
-        <button onClick={actions.onObeyLaw}>Obey Law</button> }
+      {buttons}
     </div>
   )
 }

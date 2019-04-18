@@ -1,5 +1,4 @@
 import { times, shuffle, map, filter, isEmpty, every, some, sortBy } from 'lodash'
-import { selectedLaws } from 'reducers/laws'
 import { Dice } from 'reducers/board'
 
 const generateDeck = () => {

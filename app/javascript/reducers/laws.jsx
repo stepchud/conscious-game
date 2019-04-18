@@ -630,7 +630,9 @@ const KH_INDEX=60
 const KS_INDEX = 81
 
 export const lawAtIndex = (law) => LAW_CARDS[law.index]
-export const selectedLaws = (cards) => map(filter(cards, 'selected'), 'c.card')
+export const selectedLaws = (cards) => filter(cards, 'selected')
+export const selectedPlayedLaws = (cards) => filter(cards, {'selected': true, 'played': true})
+export const unobeyedLaws = (cards) => filter(cards, c => !c.obeyed)
 export const hasnamuss = (active) => active.includes(a => a.index == 84)
 export const queenHearts = (active) => active.includes(a => a.index == 59)
 export const tenSpades = (active) => active.includes(a => a.index == 77)
@@ -651,11 +653,11 @@ const isLawSuit = (suit) => {
     case 'D':
       return (law) => law.index < 22 && law.index != KD_INDEX && !law.protected
     case 'C':
-      return (law) => law.index >= 22 && law.index < 44 && law.index != KC_INDEX && law.protected != '2S'
+      return (law) => law.index >= 22 && law.index < 44 && law.index != KC_INDEX && !law.protected
     case 'H':
       return (law) => law.index >= 44 && law.index < 62 && law.index != KH_INDEX && !law.protected
     case 'S':
-      return (law) => law.index >= 62 && law.index < 83 && law.index != KS_INDEX && law.protected != '2C'
+      return (law) => law.index >= 62 && law.index < 83 && law.index != KS_INDEX && !law.protected
   }
 }
 
@@ -692,8 +694,6 @@ const laws = (
     hand: [],
     active: [],
     discards: [],
-    by_random: true,
-    by_choice: true,
     in_play: [],
     actions: [],
   },
@@ -740,7 +740,7 @@ const laws = (
     case 'ONE_BY_RANDOM':
       // empty hand or rolled a 0 ("none by random")
       if (!hand.length || !action.roll) {
-        return { ...state, by_random: false }
+        return state
       }
       const shuffledHand = shuffle(hand)
       const randomIndex = (action.roll - 1) % shuffledHand.length
@@ -748,7 +748,6 @@ const laws = (
         ...state,
         in_play: in_play.concat(shuffledHand[randomIndex]),
         hand: shuffledHand.filter((v, idx) => idx != randomIndex),
-        by_random: false
       }
     case 'ONE_BY_CHOICE':
       const chosenIndex = action.card
@@ -756,7 +755,6 @@ const laws = (
         ...state,
         in_play: in_play.concat(hand[chosenIndex]),
         hand: hand.filter((v, idx) => idx != chosenIndex),
-        by_choice: false,
       }
     case 'OBEY_WITHOUT_ESCAPE': {
       if (action.card == '2S') {
@@ -790,7 +788,7 @@ const laws = (
         in_play: map(in_play, (c) => ({
             ...c,
             selected: c.selected ? false : c.selected,
-            played: c.selected ? true : c.selected,
+            played: c.selected ? true : c.played,
         })),
       }
     case 'DISCARD_LAW_HAND':
@@ -798,14 +796,6 @@ const laws = (
         ...state,
         discards: discards.concat(map(hand, 'c')),
         hand: []
-      }
-    case 'PASS_LAW':
-      const choice = (state.by_random ? true : false)
-      const random = true
-      return {
-        ...state,
-        by_random: random,
-        by_choice: choice,
       }
     case 'OBEY_LAW': {
       const selectedLaws = filter(in_play, 'selected')
@@ -876,6 +866,13 @@ const laws = (
       return {
         ...state,
         active: filteredActive,
+      }
+    case 'ROLL_AFTER_DEATH':
+    case 'ROLL_DICE':
+      return {
+        ...state,
+        discards: discards.concat(map(in_play, 'c')),
+        in_play: [],
       }
     case 'CANCEL_ALL_LAWS':
       const newActive = map(filter(active, 'protected'), l => ({ index: l.index, protected: false }))

@@ -7,7 +7,12 @@ const STARTING_SPACES =
   'AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF' +
   'CCIACFACILCAFFCCAIAFCCIACFFICCCAICCFCALLCCAAFCIC*'
 const LAST_SPACE = STARTING_SPACES.length - 1
-
+export const TURNS = {
+  randomLaw: 'random',
+  choiceLaw: 'choice',
+  normal: 'normal',
+  death: 'death',
+}
 
 export const Dice = (sides=10, zero=true) => {
   const basis = zero ? 0 : 1
@@ -31,7 +36,7 @@ const board = (
     position: 0,
     spaces: STARTING_SPACES,
     death_space: LAST_SPACE,
-    death_turn: false,
+    current_turn: TURNS.randomLaw,
     completed_trip: false,
   },
   action
@@ -56,18 +61,18 @@ const board = (
       }
     case 'MOVE_ROLL':
       const new_position = position + roll >= LAST_SPACE ? LAST_SPACE : position + roll
-      if (state.death_turn) {
+      if (state.current_turn===TURNS.death) {
         return {
           ...state,
           position: new_position == LAST_SPACE ? roll : new_position,
           completed_trip: new_position == LAST_SPACE,
-          death_turn: false,
+          current_turn: TURNS.normal,
           death_space: LAST_SPACE
         }
       } else if (new_position >= death_space) {
         return {
           ...state,
-          death_turn: true,
+          current_turn: TURNS.death,
           spaces: convertToDeath(state.spaces),
         }
       } else {
@@ -75,6 +80,22 @@ const board = (
           ...state,
           position: position + roll,
         }
+      }
+    case 'PASS_LAW':
+      const nextTurn = state.current_turn===TURNS.randomLaw ? TURNS.choiceLaw : TURNS.randomLaw
+      return {
+        ...state,
+        current_turn: nextTurn,
+      }
+    case 'ONE_BY_RANDOM':
+      return {
+        ...state,
+        current_turn: TURNS.choiceLaw,
+      }
+    case 'ONE_BY_CHOICE':
+      return {
+        ...state,
+        current_turn: TURNS.normal,
       }
     default:
       return state

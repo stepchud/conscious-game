@@ -11,7 +11,7 @@ import FoodDiagram, { processExtra } from 'components/food'
 import ThreeBrains from 'components/being'
 
 // reducers
-import board from 'reducers/board'
+import board, { TURNS } from 'reducers/board'
 import cards, { sameSuit, makeFaceCard } from 'reducers/cards'
 import laws, { hasnamuss, queenHearts, tenSpades } from 'reducers/laws'
 import fd, { entering, hasNewBody } from 'reducers/food_diagram'
@@ -228,8 +228,8 @@ const handleLawEvents = () => {
 // actions
 const actions = {
   onRollClick: () => {
-    const { position: position_before, death_turn } = store.getState().board
-    if (death_turn) {
+    const { position: position_before, current_turn } = store.getState().board
+    if (current_turn) {
       dispatchWithExtras({ type: 'ROLL_AFTER_DEATH' })
     } else {
       store.dispatch({ type: 'END_TURN' })
@@ -303,7 +303,7 @@ const ConsciousBoardgame = () => {
         cards={cards.hand}
         lawCards={laws.in_play}
         being={ep}
-        death_turn={board.death_turn}
+        currentTurn={board.current_turn}
       />
       <TestButtons
         actions={actions}
@@ -313,7 +313,11 @@ const ConsciousBoardgame = () => {
       />
       <Board {...board} />
       <CardHand cards={cards.hand} onSelect={actions.onSelectCard} />
-      <LawHand laws={laws} onSelect={actions.onSelectLawCard} onRandom={actions.onRandomLaw} onChoice={actions.onChooseLaw} />
+      <LawHand
+        laws={laws}
+        byChoice={board.current_turn===TURNS.choiceLaw}
+        onSelect={actions.onSelectLawCard}
+        onChoice={actions.onChooseLaw} />
       <FoodDiagram {...fd} store={store} />
       <ThreeBrains {...ep} onSelect={actions.onSelectPart} />
     </div>

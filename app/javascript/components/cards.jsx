@@ -58,8 +58,8 @@ export const CardHand = ({
 
 export const LawHand = ({
   laws,
+  byChoice,
   onSelect,
-  onRandom,
   onChoice,
 }) => {
   let activeLaws
@@ -74,18 +74,10 @@ export const LawHand = ({
       </div>
     )
   }
-  let pickLaw
-  if (laws.by_random) {
-    pickLaw = <button onClick={() => { onRandom() }}>One by random...</button>
-  } else if (laws.by_choice) {
-    pickLaw = <span>One by choice, pick: </span>
-  } else {
-    pickLaw = <span>Law hand:</span>
-  }
 
   const hand = laws.hand.length ? (
     map(laws.hand, (c, i) =>
-      <LawCard key={i} card={c} onClick={() => laws.by_choice && onChoice(i)} />
+      <LawCard key={i} card={c} onClick={() => byChoice && onChoice(i)} />
     )
   ) : (
     <span>Empty Law Hand</span>
@@ -97,7 +89,8 @@ export const LawHand = ({
         {activeLaws}
       </div>
       <div className="lawhand">
-        {pickLaw}{hand}
+        <span>Law hand:</span>
+        {hand}
       </div>
       <div className="inplay laws">
         {!!laws.in_play.length && <span>In play:</span>}
