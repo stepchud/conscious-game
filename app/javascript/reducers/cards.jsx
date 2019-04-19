@@ -1,4 +1,12 @@
-import { times, shuffle, map, filter, isEmpty, every, some, sortBy } from 'lodash'
+import {
+  every,
+  isEmpty,
+  partition,
+  shuffle,
+  some,
+  sortBy,
+  times,
+} from 'lodash'
 import { Dice } from 'reducers/board'
 
 const generateDeck = () => {
@@ -58,7 +66,7 @@ export const sameSuit = (...cards) => {
   return every(cards, c => suit(c) === firstSuit)
 }
 const sameRank = (...cards) => {
-  const ranks = new Set(map(cards, rank))
+  const ranks = new Set(cards.map(rank))
   return ranks.size < cards.length
 }
 const grouped = (...cards) => {
@@ -72,7 +80,7 @@ const grouped = (...cards) => {
          every(ranks, c => c>=8 && c<=10)
 }
 
-export const selectedCards = (cards) => map(filter(cards, 'selected'), 'c')
+export const selectedCards = (cards) => cards.filter(c => c.selected).map(c => c.c)
 const sortedHand = (cards) => sortBy(cards, c => suitInt(c.c) + rankInt(c.c))
 // cards can be played together to make new parts
 export const playable = (selected) => {
@@ -180,7 +188,7 @@ const cards = (
           ])
         )
       }
-    case 'SELECT_CARD':
+    case 'SELECT_CARD': {
       const card = hand[action.card]
       const nextHand = [
         ...hand.slice(0, action.card),
@@ -191,6 +199,7 @@ const cards = (
         ...state,
         hand: nextHand,
       }
+    }
     case 'PLAY_SELECTED':
       if (!action.pieces) { return state }
 
@@ -223,6 +232,18 @@ const cards = (
         hand: hand.slice(half),
         discards: discards.concat(hand.slice(0, half)),
       }
+    case 'KEEP_SEVEN': {
+      let [nextHand, discarded] =  partition(hand, 'selected')
+      if (nextHand.length>7) {
+        discarded += nextHand.slice(7)
+        nextHand = nextHand.slice(0, 7)
+      }
+      return {
+        ...state,
+        hand: nextHand,
+        discards: [...discards, ...discarded]
+      }
+    }
     case 'CLEAR_PIECES':
       return {
         ...state,

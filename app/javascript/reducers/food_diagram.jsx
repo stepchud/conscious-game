@@ -455,7 +455,7 @@ const foodDiagram = (
         }
       }
       return { current, enter, extras }
-    case 'ROLL_AFTER_DEATH':
+    case 'END_DEATH':
       current.alive = false
       return { current, enter, extras }
     default:

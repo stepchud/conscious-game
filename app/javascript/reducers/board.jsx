@@ -8,9 +8,9 @@ const STARTING_SPACES =
   'CCIACFACILCAFFCCAIAFCCIACFFICCCAICCFCALLCCAAFCIC*'
 const LAST_SPACE = STARTING_SPACES.length - 1
 export const TURNS = {
+  normal: 'normal',
   randomLaw: 'random',
   choiceLaw: 'choice',
-  normal: 'normal',
   death: 'death',
 }
 

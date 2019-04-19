@@ -56,6 +56,9 @@ const beginTurnState = (lob) => {
         transforms: 0,
         wild_shock: 0,
         all_shocks: 0,
+        bwe: false,
+        ewb: false,
+        c12: false,
       }
     case 'DEPUTY-STEWARD':
       return {
@@ -64,6 +67,8 @@ const beginTurnState = (lob) => {
         wild_shock: 0,
         all_shocks: 0,
         bwe: true,
+        ewb: false,
+        c12: false,
       }
     case 'STEWARD':
       return {
@@ -73,6 +78,7 @@ const beginTurnState = (lob) => {
         all_shocks: 0,
         bwe: true,
         ewb: true,
+        c12: false,
       }
     case 'MASTER':
       return {
@@ -128,7 +134,6 @@ const ep = (
     card_plays,
   } = state
   switch(action.type) {
-    case 'ROLL_AFTER_DEATH':
     case 'END_TURN':
       return {
         ...state,

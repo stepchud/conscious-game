@@ -633,9 +633,9 @@ export const lawAtIndex = (law) => LAW_CARDS[law.index]
 export const selectedLaws = (cards) => filter(cards, 'selected')
 export const selectedPlayedLaws = (cards) => filter(cards, {'selected': true, 'played': true})
 export const unobeyedLaws = (cards) => filter(cards, c => !c.obeyed)
-export const hasnamuss = (active) => active.includes(a => a.index == 84)
-export const queenHearts = (active) => active.includes(a => a.index == 59)
-export const tenSpades = (active) => active.includes(a => a.index == 77)
+export const hasnamuss = (active) => active.map(a => a.index).includes(84)
+export const queenHearts = (active) => active.map(a => a.index).includes(59)
+export const tenSpades = (active) => active.map(a => a.index).includes(77)
 
 const activeKings = (active) => map(
          filter(active, (c) => [ KD_INDEX, KC_INDEX, KH_INDEX, KS_INDEX ].includes(c.index)),
@@ -680,8 +680,8 @@ const drawLawCard = (preDeck, preDisc) => {
 const generateLawDeck = () => {
   const newDeck = LAW_CARDS.slice(62)
   let temp = newDeck[1]
-  newDeck[1] = newDeck[19]
-  newDeck[19] = temp
+  newDeck[1] = newDeck[21]
+  newDeck[21] = temp
   temp = newDeck[3]
   newDeck[3] = newDeck[15]
   newDeck[15] = temp
