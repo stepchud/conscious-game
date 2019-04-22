@@ -34,6 +34,7 @@ const board = (
     dice: sixSides,
     roll: 0,
     position: 0,
+    laws_passed: 2,
     spaces: STARTING_SPACES,
     death_space: LAST_SPACE,
     current_turn: TURNS.randomLaw,
@@ -41,13 +42,18 @@ const board = (
   },
   action
 ) => {
-  const { roll, position, dice, death_space } = state
+  const { roll, position, dice, death_space, laws_passed } = state
   switch(action.type) {
     case 'ROLL_AFTER_DEATH':
     case 'ROLL_DICE':
       return {
         ...state,
         roll: dice.roll(),
+      }
+    case 'END_TURN':
+      return {
+        ...state,
+        laws_passed: 0,
       }
     case 'TAKE_OPPOSITE':
       return {
@@ -82,15 +88,15 @@ const board = (
         }
       }
     case 'PASS_LAW':
-      const nextTurn = state.current_turn===TURNS.randomLaw ? TURNS.choiceLaw : TURNS.randomLaw
       return {
         ...state,
-        current_turn: nextTurn,
+        laws_passed: laws_passed+1,
+        current_turn: TURNS.randomLaw,
       }
     case 'ONE_BY_RANDOM':
       return {
         ...state,
-        current_turn: TURNS.choiceLaw,
+        current_turn: laws_passed==2 ? TURNS.choiceLaw : TURNS.normal,
       }
     case 'ONE_BY_CHOICE':
       return {

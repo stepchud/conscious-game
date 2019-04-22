@@ -14,6 +14,7 @@ const TestButtons = ({
   const selCards = selectedCards(cards)
   const selLaws = selectedLaws(lawCards)
   const selParts = selectedParts(parts)
+  const selLawCards = map(selLaws, 'c.card')
   return (
     <div className="actions">
       <button onClick={actions.onDrawCard}>Draw Card</button>
@@ -26,7 +27,7 @@ const TestButtons = ({
       <button onClick={actions.onTransformEmotions}>Transform Emotion</button>
       { combinable(selParts) &&
         <button onClick={() => { actions.onCombineSelectedParts(selParts)} }>Combine Parts</button> }
-      { playable(selCards.concat(selLaws)) && !some(selLaws, 'played') &&
+      { playable(selCards.concat(selLawCards)) && !some(selLaws, 'played') &&
         <button onClick={() => { actions.onPlaySelected(selCards, selLaws)} }>Play Cards</button> }
       { selectedLaws(lawCards).length===1 &&
         <button onClick={actions.onObeyLaw}>Obey Law</button> }

@@ -1,5 +1,5 @@
 import { map, filter } from 'lodash'
-import { sameSuit, makeNewPart } from 'reducers/cards'
+import { sameSuit, makeNewPart, combinable } from 'reducers/cards'
 import { sixSides } from 'reducers/board'
 
 const PARTS = [
@@ -189,14 +189,21 @@ const ep = (
       }
     case 'COMBINE_PARTS':
       const newPart = makeNewPart(action.selected)
+      const combine = combinable(action.selected)
       if (!newPart) { return state }
 
+      const powers = {
+        transforms: combine==='transforms' ? state.transforms - 1 : state.transforms,
+        wild_shock: combine==='wild_shock' ? state.wild_shock - 1 : state.wild_shock,
+        all_shocks: combine==='all_shocks' ? state.all_shocks - 1 : state.all_shocks,
+      }
       action.selected.forEach(s => {
         parts[PARTS.indexOf(s)].selected = false
         pieces[PARTS.indexOf(s)] -= 1
       })
       return {
         ...state,
+        ...powers,
         pieces,
         parts,
       }
