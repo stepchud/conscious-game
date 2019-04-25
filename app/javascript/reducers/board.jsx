@@ -72,18 +72,26 @@ const board = (
           ...state,
           position: new_position == LAST_SPACE ? roll : new_position,
           completed_trip: new_position == LAST_SPACE,
+          regain: ['sleep', 'nopowers', 'noskills'],
           current_turn: TURNS.normal,
           death_space: LAST_SPACE
         }
-      } else if (new_position >= death_space) {
+      }
+      const regain = []
+      if (new_position > sleep_until) { regain.push('sleep') }
+      if (new_position > nopowers_until) { regain.push('nopowers') }
+      if (new_position > noskills_until) { regain.push('noskills') }
+      if (new_position >= death_space) {
         return {
           ...state,
+          regain,
           current_turn: TURNS.death,
           spaces: convertToDeath(state.spaces),
         }
       } else {
         return {
           ...state,
+          regain,
           position: position + roll,
         }
       }
@@ -92,6 +100,12 @@ const board = (
         ...state,
         laws_passed: laws_passed+1,
         current_turn: TURNS.randomLaw,
+      }
+    case 'MECHANICAL':
+      const lost_until = `${action.lost}_until`
+      return {
+        ...state,
+        [lost_until]: position + action.for,
       }
     case 'ONE_BY_RANDOM':
       return {

@@ -8,6 +8,7 @@ import fd, { entering, hasNewBody } from 'reducers/food_diagram'
 import ep, { rollOptions } from 'reducers/being'
 
 const presentEvent = (event) => {
+  const { sleep, noskills } = store.getState().being
   switch(event) {
     case 'DEPUTY-STEWARD':
       alert('After some time, with the help of magnetic center, a man may find a school.')
@@ -88,7 +89,7 @@ const presentEvent = (event) => {
       break
     case 'MI-48':
       const ewb = store.getState().ep.ewb
-      if (ewb && confirm('Eat when you breathe?')) {
+      if (!sleep && !noskills && ewb && confirm('Eat when you breathe?')) {
         store.dispatch({type: 'EAT_WHEN_YOU_BREATHE'})
       } else {
         store.dispatch({type: 'LEAVE_MI_48'})
@@ -96,7 +97,7 @@ const presentEvent = (event) => {
       break
     case 'DO-48':
       const c12 = store.getState().ep.c12
-      if (c12 && confirm('Carbon-12?')) {
+      if (!sleep && !noskills && c12 && confirm('Carbon-12?')) {
         store.dispatch({type: 'CARBON_12'})
       } else {
         store.dispatch({type: 'LEAVE_DO_48'})
@@ -110,7 +111,7 @@ const presentEvent = (event) => {
       break
     case 'MI-192':
       const bwe = store.getState().ep.bwe
-      if (bwe && confirm('Breathe when you eat?')) {
+      if (!sleep && !noskills && bwe && confirm('Breathe when you eat?')) {
         store.dispatch({type: 'BREATHE_WHEN_YOU_EAT'})
       } else {
         store.dispatch({type: 'LEAVE_MI_192'})
@@ -157,8 +158,9 @@ const dispatchWithExtras = (action) => {
 
 const handleRollOptions = () => {
   const active = store.getState().laws.active
+  const sleep = store.getState().being.sleep
   // HASNAMUSS: no roll-options
-  if (hasnamuss(active)) { return }
+  if (sleep || hasnamuss(active)) { return }
 
   let roll = store.getState().board.roll
   let options = rollOptions(store.getState().ep.level_of_being)
@@ -218,13 +220,24 @@ const rollClick = () => {
   store.dispatch({ type: 'ROLL_DICE' })
   handleRollOptions()
   store.dispatch({ type: 'MOVE_ROLL' })
-  const { position, spaces } = store.getState().board
+  const { position, spaces, regain } = store.getState().board
   for (let s of spaces.substring(position_before+1, position)) {
     if (s==='L') {
       store.dispatch({ type: 'DRAW_LAW_CARD' })
       store.dispatch({ type: 'PASS_LAW' })
     }
   }
+  for (let lost of regain) {
+    const card = lost==='sleep' ?  'JD' : (
+      lost==='nopowers' ? 'JH' : (lost==='noskills' && 'JC')
+    )
+    store.dispatch({ type: 'REGAIN', lost })
+    store.dispatch({ type: 'REMOVE_ACTIVE', card })
+  }
+
+  // no stuff while asleep
+  if (store.getState().being.sleep) { return }
+
   switch(spaces[position]) {
     case 'F':
       dispatchWithExtras({ type: 'EAT_FOOD' })

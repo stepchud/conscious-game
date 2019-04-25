@@ -646,7 +646,14 @@ const isLawCard = (card) => {
     return (law) => law.index == 77
   } else if (card == 'QH') {
     return (law) => law.index == 59
+  } else if (card == 'JD') {
+    return (law) => law.index == 18
+  } else if (card == 'JC') {
+    return (law) => law.index == 40
+  } else if (card == 'JH') {
+    return (law) => law.index == 58
   }
+
 }
 const isLawSuit = (suit) => {
   switch(suit) {
@@ -678,7 +685,7 @@ const drawLawCard = (preDeck, preDisc) => {
 }
 
 const generateLawDeck = () => {
-  const newDeck = LAW_CARDS.slice(62)
+  const newDeck = LAW_CARDS.slice(18)
   let temp = newDeck[1]
   newDeck[1] = newDeck[21]
   newDeck[21] = temp
@@ -757,26 +764,17 @@ const laws = (
         hand: hand.filter((v, idx) => idx != chosenIndex),
       }
     case 'OBEY_WITHOUT_ESCAPE': {
-      if (action.card == '2S') {
-        const draw = drawLawCard(deck, discards)
-        return {
-          ...state,
-          in_play: in_play.concat({ c: draw.law, selected: false, no_escape: '2S' }),
-          deck: draw.deck,
-          discards: draw.discards,
-        }
-      } else if (action.card == '2C') {
-        let draw = drawLawCard(deck, discards)
+      let draw = drawLawCard(deck, discards)
+      if (action.card == '2C') {
         for (let i=1; i<action.being_type; i++) {
           draw = drawLawCard(draw.deck, draw.discards.concat(draw.law))
         }
-
-        return {
-          ...state,
-          in_play: in_play.concat({ c: draw.law, selected: false, no_escape: '2C' }),
-          deck: draw.deck,
-          discards: draw.discards,
-        }
+      }
+      return {
+        ...state,
+        in_play: in_play.concat({ c: draw.law, selected: false, no_escape: action.card }),
+        deck: draw.deck,
+        discards: draw.discards,
       }
     }
     case 'PLAY_SELECTED':
@@ -876,9 +874,21 @@ const laws = (
       }
     case 'CANCEL_ALL_LAWS':
       const newActive = map(filter(active, 'protected'), l => ({ index: l.index, protected: false }))
+      const newInPlay = map(in_play, lc => {
+        if (lc.no_escape) {
+          delete lc.no_escape
+          return lc
+        } else {
+          return  {
+            ...lc,
+            obeyed: true
+          }
+        }
+      })
       return {
         ...state,
         active: newActive,
+        in_play: newInPlay,
       }
     case 'CLEAR_ACTIONS':
       return {

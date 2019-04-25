@@ -36,7 +36,7 @@ const Buttons = ({
         <button key={buttons.length} onClick={actions.onRollClick}>Roll Dice</button>
       )
     }
-    if (being[combinable(selParts)]) {
+    if (!being.sleep && !being.nopowers && being[combinable(selParts)]) {
       buttons.push(
         <button
           key={buttons.length}
@@ -45,7 +45,7 @@ const Buttons = ({
         </button>
       )
     }
-    if (cardsPlay) {
+    if (!being.sleep && cardsPlay) {
       buttons.push(
         <button
           key={buttons.length}
