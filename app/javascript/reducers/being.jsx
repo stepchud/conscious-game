@@ -255,6 +255,11 @@ const ep = (
         ...state,
         card_plays: card_plays + 1,
       }
+    case 'GAME_OVER':
+      return {
+        ...state,
+        game_over: true
+      }
     default:
       return state
   }

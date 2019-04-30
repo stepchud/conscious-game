@@ -80,12 +80,22 @@ const noteIndex = (note, current) => {
   }
   return [octave, index]
 }
-export const hasNewBody = (fd) =>
-  fd.food[8]>=3 && fd.air[6]>=3 && fd.impressions[4]>=1 && !fd.mental
 
-export const survivesDeath = (fd, completed_trip) => {
-  fd.mental || (fd.astral && (fd.alive || !completed_trip))
+const hasNewBody = (fd) => {
+  let xFood = fd.food[8]
+  let xAir = fd.air[6]
+  let xImpressions = fd.impressions[4]
+  if (fd.alive) {
+    return fd.astral ?
+      (xFood >= 11 && xAir >= 9 && xImpressions >= 5) :
+      (xFood >= 3 && xAir >= 3 && xImpressions >= 1)
+  } else {
+    xFood>=3 && xAir>=3 && xImpressions>=1
+  }
 }
+
+export const survivesDeath = (fd, completed_trip) =>
+  fd.mental || (fd.astral && (fd.alive || !completed_trip))
 
 export const entering = (enter) =>
   _.some([...enter.food, ...enter.air, ...enter.impressions])
@@ -125,25 +135,29 @@ const enterNotes = ({ current, enter, extras }) => {
     current.impressions[4]++
     enter.impressions[3]--
   }
+
+  // handle new chips
   if (hasNewBody(current)) {
     if (current.mental) {
       // NO-OP: extra mental body
     } else if (current.astral) {
       extras.push('MENTAL-BODY')
+      current.mental = true
     } else {
       extras.push('ASTRAL-BODY')
+      current.astral = true
     }
-  } else if (current.food[8]>3) {
+  } else if (!current.astral && current.food[8]>3) {
     while(current.food[8]>3) {
       extras.push('EXTRA-FOOD')
       current.food[8]--
     }
-  } else if (current.air[6]>3) {
+  } else if (!current.astral && current.air[6]>3) {
     while(current.air[6]>3) {
       extras.push('EXTRA-AIR')
       current.air[6]--
     }
-  } else if (current.impressions[4]>1) {
+  } else if (!current.astral && current.impressions[4]>1) {
     while(current.impressions[4]>1) {
       extras.push('EXTRA-IMPRESSION')
       current.impressions[4]--
@@ -390,12 +404,18 @@ const foodDiagram = (
         }
       })
       return { current, enter, extras }
-    case 'TAKE_NOTES':
+    case 'TAKE_NOTES': {
       _.each(action.notes, (note) => {
         const [octave, index] = noteIndex(note, current)
         current[octave][index] = 0
       })
       return { current, enter, extras }
+    }
+    case 'DECAY_NOTE': {
+      const [octave, index] = noteIndex(action.note, current)
+      current[octave][index]--
+      return { current, enter, extras }
+    }
     case 'TRANSFORM_MI_TI_12_TO_6':
       enter.impressions[3] = current.impressions[2]
       current.impressions[2] = 0

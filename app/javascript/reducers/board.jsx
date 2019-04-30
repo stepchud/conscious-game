@@ -16,17 +16,19 @@ export const TURNS = {
 
 export const Dice = (sides=10, zero=true) => {
   const basis = zero ? 0 : 1
-  const roll = () => Math.floor(Math.random() * sides) + basis;
-  const opposite = (value) => sides + basis - value;
+  const roll = () => Math.floor(Math.random() * sides) + basis
+  const opposite = (value) => sides + basis - value
 
   return { roll, opposite }
 }
 export const tenSides = Dice(10, true)
 export const sixSides = Dice(6, false)
 
-const convertToDeath = (spaces) => {
-  const deathSpaces = spaces.replace(/L/g, '*').replace(/C/g, 'D');
-  return deathSpaces.split("").reverse().join("");
+const convertToDeath = (spaces, completed) => {
+  const deathSpaces = spaces.replace(/L/g, '*').replace(/C/g, 'D')
+  return completed ?
+    deathSpaces.split("").reverse().join("") :
+    deathSpaces.split("").join("")
 }
 
 const board = (
@@ -42,9 +44,17 @@ const board = (
   },
   action
 ) => {
-  const { roll, position, dice, death_space, laws_passed } = state
+  const {
+    roll,
+    position,
+    dice,
+    sleep_until,
+    nopowers_until,
+    noskills_until,
+    death_space,
+    laws_passed
+  } = state
   switch(action.type) {
-    case 'ROLL_AFTER_DEATH':
     case 'ROLL_DICE':
       return {
         ...state,
@@ -67,16 +77,6 @@ const board = (
       }
     case 'MOVE_ROLL':
       const new_position = position + roll >= LAST_SPACE ? LAST_SPACE : position + roll
-      if (state.current_turn===TURNS.death) {
-        return {
-          ...state,
-          position: new_position == LAST_SPACE ? roll : new_position,
-          completed_trip: new_position == LAST_SPACE,
-          regain: ['sleep', 'nopowers', 'noskills'],
-          current_turn: TURNS.normal,
-          death_space: LAST_SPACE
-        }
-      }
       const regain = []
       if (new_position > sleep_until) { regain.push('sleep') }
       if (new_position > nopowers_until) { regain.push('nopowers') }
@@ -86,7 +86,6 @@ const board = (
           ...state,
           regain,
           current_turn: TURNS.death,
-          spaces: convertToDeath(state.spaces),
         }
       } else {
         return {
@@ -116,6 +115,21 @@ const board = (
       return {
         ...state,
         current_turn: TURNS.normal,
+      }
+    case 'DEATH':
+      return {
+        ...state,
+        current_turn: TURNS.death,
+      }
+    case 'END_DEATH':
+      const completedTrip = new_position == LAST_SPACE
+      return {
+        ...state,
+        completed_trip: completedTrip,
+        regain: ['sleep', 'nopowers', 'noskills'],
+        current_turn: TURNS.normal,
+        spaces: convertToDeath(state.spaces, completedTrip),
+        death_space: LAST_SPACE
       }
     default:
       return state

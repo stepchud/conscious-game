@@ -685,13 +685,13 @@ const drawLawCard = (preDeck, preDisc) => {
 }
 
 const generateLawDeck = () => {
-  const newDeck = LAW_CARDS.slice(18)
-  let temp = newDeck[1]
-  newDeck[1] = newDeck[21]
-  newDeck[21] = temp
-  temp = newDeck[3]
-  newDeck[3] = newDeck[15]
-  newDeck[15] = temp
+  const newDeck = LAW_CARDS.slice(40)
+  //let temp = newDeck[1]
+  //newDeck[1] = newDeck[21]
+  //newDeck[21] = temp
+  //temp = newDeck[3]
+  //newDeck[3] = newDeck[15]
+  //newDeck[15] = temp
   return newDeck
 }
 
@@ -865,7 +865,13 @@ const laws = (
         ...state,
         active: filteredActive,
       }
-    case 'ROLL_AFTER_DEATH':
+    case 'END_DEATH':
+      return {
+        ...state,
+        discards: discards.concat(map(in_play, 'c')),
+        in_play: [],
+        active: [],
+      }
     case 'ROLL_DICE':
       return {
         ...state,

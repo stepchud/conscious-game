@@ -4,11 +4,11 @@ import { combineReducers, createStore} from 'redux'
 import board from 'reducers/board'
 import cards, { sameSuit, makeFaceCard } from 'reducers/cards'
 import laws, { hasnamuss, queenHearts, tenSpades } from 'reducers/laws'
-import fd, { entering, hasNewBody } from 'reducers/food_diagram'
+import fd, { entering, survivesDeath } from 'reducers/food_diagram'
 import ep, { rollOptions } from 'reducers/being'
 
 const presentEvent = (event) => {
-  const { sleep, noskills } = store.getState().being
+  const { sleep, noskills } = store.getState().ep
   switch(event) {
     case 'DEPUTY-STEWARD':
       alert('After some time, with the help of magnetic center, a man may find a school.')
@@ -138,6 +138,10 @@ const presentEvent = (event) => {
     case 'NOTHING-TO-REMEMBER':
       alert('Nothing to Remember.')
       break
+    case 'GAME-OVER':
+      alert('Game over :( ... nothing to do but try again.')
+      location.reload()
+      break
     default:
       console.warn(`presentEvent unknown event: ${event}`)
   }
@@ -158,7 +162,7 @@ const dispatchWithExtras = (action) => {
 
 const handleRollOptions = () => {
   const active = store.getState().laws.active
-  const sleep = store.getState().being.sleep
+  const sleep = store.getState().ep.sleep
   // HASNAMUSS: no roll-options
   if (sleep || hasnamuss(active)) { return }
 
@@ -204,6 +208,142 @@ const handlePieces = (action) => {
   store.dispatch({ type: 'CLEAR_NEW_LEVELS' })
 }
 
+const handleDecay = () => {
+  const { fd: { current }, board: { dice } } = store.getState()
+  const roll = dice.roll()
+
+  const rollDiv3 = roll % 3
+  const decay = roll === 0 ? 'nothing' :
+    rollDiv3 === 0 ? 'food' :
+    rollDiv3 === 1 ? 'air' :
+    'impression'
+  switch(decay) {
+    case 'nothing':
+      alert("Decayed nothing")
+      return
+    case 'food':
+      decayFood(current.food)
+      return
+    case 'air':
+      decayAir(current.air)
+      return
+    case 'impression':
+      decayImpression(current.impressions)
+      return
+  }
+}
+
+const handleWildSpace = () => {
+  if (confirm('Wild Space! Draw a card?')) {
+    store.dispatch({ type: 'DRAW_CARD' })
+  } else if (confirm('Take impression?')) {
+    dispatchWithExtras({ type: 'TAKE_IMPRESSION' })
+  } else if (confirm('Take air?')) {
+    dispatchWithExtras({ type: 'BREATHE_AIR' })
+  } else {
+    dispatchWithExtras({ type: 'EAT_FOOD' })
+  }
+}
+
+const decayFood = (notes) => {
+  if (notes[0] + notes[1] + notes[2] + notes[3] + notes[4] + notes[5] + notes[6] + notes[7] === 0) {
+    alert('No food to decay')
+    return
+  }
+  while(true) {
+    if (notes[0] && confirm('Decay DO-768?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'DO-768' })
+      return
+    }
+    if (notes[1] && confirm('Decay RE-384?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'RE-384' })
+      return
+    }
+    if (notes[2] && confirm('Decay MI-192?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'MI-192' })
+      return
+    }
+    if (notes[3] && confirm('Decay FA-96?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'FA-96' })
+      return
+    }
+    if (notes[4] && confirm('Decay SO-48?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'SO-48' })
+      return
+    }
+    if (notes[5] && confirm('Decay LA-24?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'LA-24' })
+      return
+    }
+    if (notes[6] && confirm('Decay TI-12?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'TI-12' })
+      return
+    }
+    if (notes[7] && confirm('Decay DO-6?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'DO-6' })
+      return
+    }
+  }
+}
+
+const decayAir = (notes) => {
+  if (notes[0] + notes[1] + notes[2] + notes[3] + notes[4] + notes[5] === 0) {
+    alert('No air to decay')
+    return
+  }
+  while(true) {
+    if (notes[0] && confirm('Decay DO-192?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'DO-192' })
+      return
+    }
+    if (notes[1] && confirm('Decay RE-96?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'RE-96' })
+      return
+    }
+    if (notes[2] && confirm('Decay MI-48?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'MI-48' })
+      return
+    }
+    if (notes[3] && confirm('Decay FA-24?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'FA-24' })
+      return
+    }
+    if (notes[4] && confirm('Decay SO-12?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'SO-12' })
+      return
+    }
+    if (notes[5] && confirm('Decay LA-6?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'LA-6' })
+      return
+    }
+  }
+}
+
+const decayImpression = (notes) => {
+  if (notes[0] + notes[1] + notes[2] + notes[3] === 0) {
+    alert('No impressions to decay')
+    return
+  }
+  while (true) {
+    if (notes[0] && confirm('Decay DO-48?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'DO-48' })
+      return
+    }
+    if (notes[1] && confirm('Decay RE-24?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'RE-24' })
+      return
+    }
+    if (notes[2] && confirm('Decay MI-12?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'MI-12' })
+      return
+    }
+    if (notes[3] && confirm('Decay FA-6?')) {
+      store.dispatch({ type: 'DECAY_NOTE', note: 'FA-6' })
+      return
+    }
+  }
+}
+
 const handleLawEvents = () => {
   const { being_type } = store.getState().ep
   store.dispatch({ type: 'OBEY_LAW' })
@@ -236,7 +376,7 @@ const rollClick = () => {
   }
 
   // no stuff while asleep
-  if (store.getState().being.sleep) { return }
+  if (store.getState().ep.sleep) { return }
 
   switch(spaces[position]) {
     case 'F':
@@ -256,17 +396,22 @@ const rollClick = () => {
       store.dispatch({ type: 'MAGNETIC_CENTER_MOMENT' })
       break;
     case 'D':
+      handleDecay()
+      break;
     case '*':
+      handleWildSpace()
+      break;
     default:
   }
 }
 const endDeath = () => {
-  const { fd, cards, board: { completed_trip } } = store.getState()
-  if (survivesDeath(fd, completed_trip)) {
-    store.dispatch({ type: 'KEEP_SEVEN' })
+  const { fd: { current }, board: { completed_trip } } = store.getState()
+  if (survivesDeath(current, completed_trip)) {
+    store.dispatch({ type: 'DISCARD_LAW_HAND' }),
+    store.dispatch({ type: 'CHANGE_BODY' }),
     store.dispatch({ type: 'END_DEATH' })
   } else {
-    store.dispatch(type: 'GAME_OVER')
+    presentEvent('GAME-OVER')
   }
 }
 
@@ -291,7 +436,8 @@ export const actions = {
   onTransformEmotions: () => dispatchWithExtras({ type: 'TRANSFORM_EMOTIONS' }),
   onCombineSelectedParts: (selected) => handlePieces({ type: 'COMBINE_PARTS', selected }),
   onAdvanceFoodDiagram: () => dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' }),
-  onChangeBody: () => dispatchWithExtras({ type: 'CHANGE_BODY' }),
+  onChangeBody: () => store.dispatch({ type: 'CHANGE_BODY' }),
+  onDying: () => store.dispatch({ type: 'DEATH' }),
   onRandomLaw: () => store.dispatch({
     type: "ONE_BY_RANDOM",
     roll: store.getState().board.dice.roll()

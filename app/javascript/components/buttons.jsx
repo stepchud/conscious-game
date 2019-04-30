@@ -30,11 +30,11 @@ const Buttons = ({
   } else {
     if (unobeyedLaws(lawCards).length) {
       buttons.push(<span key={buttons.length}>* You simply must obey all of the laws in play</span>)
+    } else if (currentTurn===TURNS.death) {
+      buttons.push(<button key={buttons.length} onClick={actions.onEndDeath}>End Death</button>)
+      buttons.push(<span key={buttons.length}>** Select up to 7 cards from your hand to keep first</span>)
     } else {
-      buttons.push(currentTurn===TURNS.death ?
-        <button key={buttons.length} onClick={actions.onFinishDeath}>Finish Death</button> :
-        <button key={buttons.length} onClick={actions.onRollClick}>Roll Dice</button>
-      )
+      buttons.push(<button key={buttons.length} onClick={actions.onRollClick}>Roll Dice</button>)
     }
     if (!being.sleep && !being.nopowers && being[combinable(selParts)]) {
       buttons.push(

@@ -232,15 +232,18 @@ const cards = (
         hand: hand.slice(half),
         discards: discards.concat(hand.slice(0, half)),
       }
-    case 'KEEP_SEVEN': {
+    case 'END_DEATH': {
       let [nextHand, discarded] =  partition(hand, 'selected')
       if (nextHand.length>7) {
         discarded += nextHand.slice(7)
         nextHand = nextHand.slice(0, 7)
+      } else if (nextHand.length===0) {
+        discarded += hand.slice(7)
+        nextHand = hand.slice(0, 7)
       }
       return {
         ...state,
-        hand: nextHand,
+        hand: nextHand.map(card => ({ c: card.c, selected: false })),
         discards: [...discards, ...discarded]
       }
     }
