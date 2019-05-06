@@ -23,23 +23,24 @@ const ConsciousBoardgame = () => {
         actions={actions}
         roll={board.roll}
         cards={cards.hand}
-        lawCards={laws.in_play}
+        laws={laws}
         being={ep}
         currentTurn={board.current_turn}
       />
       <TestButtons
         actions={actions}
         cards={cards.hand}
-        lawCards={laws.in_play}
+        laws={laws}
         parts={ep.parts}
       />
       <Board {...board} />
       <CardHand cards={cards.hand} onSelect={actions.onSelectCard} />
-      <LawHand
-        laws={laws}
-        byChoice={board.current_turn===TURNS.choiceLaw}
-        onSelect={actions.onSelectLawCard}
-        onChoice={actions.onChooseLaw} />
+      { fd.current.alive && <LawHand
+          laws={laws}
+          byChoice={board.current_turn===TURNS.choiceLaw}
+          onSelect={actions.onSelectLawCard}
+          onChoice={actions.onChooseLaw} />
+      }
       <FoodDiagram {...fd} store={store} />
       <ThreeBrains {...ep} onSelect={actions.onSelectPart} />
     </div>

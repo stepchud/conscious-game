@@ -31,6 +31,23 @@ const generateDeck = () => {
   return shuffle(deck)
 }
 
+const drawCard = (state) => {
+  let deck = state.deck.slice(1)
+  let discards = state.discards
+  if (isEmpty(state.deck)) {
+    deck = shuffle(state.discards).slice(1)
+    discards = []
+  }
+  const hand = sortedHand(state.hand.concat({ c: deck[0], selected: false }))
+
+  return {
+    ...state,
+    deck,
+    discards,
+    hand,
+  }
+}
+
 const suit = card => card[card.length-1]
 const suitInt = card => {
   switch(suit(card)) {
@@ -158,20 +175,7 @@ const cards = (
 
   switch(action.type) {
     case 'DRAW_CARD':
-      let nextDeck, nextDiscards
-      if (isEmpty(deck)) {
-        nextDeck = shuffle(discards)
-        nextDiscards = []
-      } else {
-        nextDeck = deck
-        nextDiscards = discards
-      }
-      return {
-        ...state,
-        deck: nextDeck.slice(1),
-        discards: nextDiscards,
-        hand: sortedHand(hand.concat({ c: nextDeck[0], selected: false })),
-      }
+      return drawCard(state)
     case 'START_GAME':
       return {
         ...state,
@@ -233,19 +237,25 @@ const cards = (
         discards: discards.concat(hand.slice(0, half)),
       }
     case 'END_DEATH': {
-      let [nextHand, discarded] =  partition(hand, 'selected')
-      if (nextHand.length>7) {
-        discarded += nextHand.slice(7)
-        nextHand = nextHand.slice(0, 7)
-      } else if (nextHand.length===0) {
-        discarded += hand.slice(7)
-        nextHand = hand.slice(0, 7)
+      let nextState = { ...state }
+      if (hand.length <= 7) {
+        for (let i=hand.length; i<7; i++) {
+          nextState = drawCard(nextState)
+        }
+      } else { // hand.length > 7
+        let [nextHand, discarded] =  partition(hand, 'selected')
+        if (nextHand.length>7) {
+          discarded += nextHand.slice(7)
+          nextHand = nextHand.slice(0, 7)
+        } else if (nextHand.length===0) {
+          discarded += hand.slice(7)
+          nextHand = hand.slice(0, 7)
+        }
+        nextState.hand = nextHand
+        nextState.discards = [...discards, ...discarded]
       }
-      return {
-        ...state,
-        hand: nextHand.map(card => ({ c: card.c, selected: false })),
-        discards: [...discards, ...discarded]
-      }
+      nextState.hand = nextState.hand.map(card => ({ c: card.c, selected: false }))
+      return nextState
     }
     case 'CLEAR_PIECES':
       return {

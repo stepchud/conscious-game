@@ -3,12 +3,21 @@ import { combineReducers, createStore} from 'redux'
 // reducers
 import board from 'reducers/board'
 import cards, { sameSuit, makeFaceCard } from 'reducers/cards'
-import laws, { hasnamuss, queenHearts, tenSpades } from 'reducers/laws'
+import laws, {
+  hasnamuss,
+  jackDiamonds,
+  jackClubs,
+  jackHearts,
+  queenHearts,
+  tenSpades
+} from 'reducers/laws'
 import fd, { entering, survivesDeath } from 'reducers/food_diagram'
 import ep, { rollOptions } from 'reducers/being'
 
 const presentEvent = (event) => {
-  const { sleep, noskills } = store.getState().ep
+  const active = store.getState().laws.active
+  const asleep = jackDiamonds(active)
+  const noskills = jackClubs(active)
   switch(event) {
     case 'DEPUTY-STEWARD':
       alert('After some time, with the help of magnetic center, a man may find a school.')
@@ -23,10 +32,10 @@ const presentEvent = (event) => {
       store.dispatch({ type: 'ATTAIN_MASTER' })
       break
     case 'MENTAL-BODY':
-      alert('You have a mental body')
+      alert('I am Immortal within the limits of the Sun')
       break
     case 'ASTRAL-BODY':
-      alert('You have an astral body')
+      alert('I have crystallized the body Kesdjan')
       break
     case 'EXTRA-IMPRESSION':
       if (confirm('Extra Impression: Draw a card?\nCancel to take it back in as Air.')) {
@@ -89,7 +98,7 @@ const presentEvent = (event) => {
       break
     case 'MI-48':
       const ewb = store.getState().ep.ewb
-      if (!sleep && !noskills && ewb && confirm('Eat when you breathe?')) {
+      if (!asleep && !noskills && ewb && confirm('Eat when you breathe?')) {
         store.dispatch({type: 'EAT_WHEN_YOU_BREATHE'})
       } else {
         store.dispatch({type: 'LEAVE_MI_48'})
@@ -97,7 +106,7 @@ const presentEvent = (event) => {
       break
     case 'DO-48':
       const c12 = store.getState().ep.c12
-      if (!sleep && !noskills && c12 && confirm('Carbon-12?')) {
+      if (!asleep && !noskills && c12 && confirm('Carbon-12?')) {
         store.dispatch({type: 'CARBON_12'})
       } else {
         store.dispatch({type: 'LEAVE_DO_48'})
@@ -111,7 +120,7 @@ const presentEvent = (event) => {
       break
     case 'MI-192':
       const bwe = store.getState().ep.bwe
-      if (!sleep && !noskills && bwe && confirm('Breathe when you eat?')) {
+      if (!asleep && !noskills && bwe && confirm('Breathe when you eat?')) {
         store.dispatch({type: 'BREATHE_WHEN_YOU_EAT'})
       } else {
         store.dispatch({type: 'LEAVE_MI_192'})
@@ -162,9 +171,9 @@ const dispatchWithExtras = (action) => {
 
 const handleRollOptions = () => {
   const active = store.getState().laws.active
-  const sleep = store.getState().ep.sleep
+  const asleep = jackDiamonds(active)
   // HASNAMUSS: no roll-options
-  if (sleep || hasnamuss(active)) { return }
+  if (asleep || hasnamuss(active)) { return }
 
   let roll = store.getState().board.roll
   let options = rollOptions(store.getState().ep.level_of_being)
@@ -234,14 +243,21 @@ const handleDecay = () => {
 }
 
 const handleWildSpace = () => {
-  if (confirm('Wild Space! Draw a card?')) {
-    store.dispatch({ type: 'DRAW_CARD' })
-  } else if (confirm('Take impression?')) {
-    dispatchWithExtras({ type: 'TAKE_IMPRESSION' })
-  } else if (confirm('Take air?')) {
-    dispatchWithExtras({ type: 'BREATHE_AIR' })
-  } else {
-    dispatchWithExtras({ type: 'EAT_FOOD' })
+  store.dispatch({ type: 'MAGNETIC_CENTER_MOMENT' })
+  while(true) {
+    if (confirm('Wild Space! Draw a card?')) {
+      store.dispatch({ type: 'DRAW_CARD' })
+      return
+    } else if (confirm('Take impression?')) {
+      dispatchWithExtras({ type: 'TAKE_IMPRESSION' })
+      return
+    } else if (confirm('Take air?')) {
+      dispatchWithExtras({ type: 'BREATHE_AIR' })
+      return
+    } else if (confirm('Take food?')) {
+      dispatchWithExtras({ type: 'EAT_FOOD' })
+      return
+    }
   }
 }
 
@@ -360,23 +376,20 @@ const rollClick = () => {
   store.dispatch({ type: 'ROLL_DICE' })
   handleRollOptions()
   store.dispatch({ type: 'MOVE_ROLL' })
-  const { position, spaces, regain } = store.getState().board
+  const { position, spaces, laws_cancel } = store.getState().board
   for (let s of spaces.substring(position_before+1, position)) {
     if (s==='L') {
       store.dispatch({ type: 'DRAW_LAW_CARD' })
       store.dispatch({ type: 'PASS_LAW' })
     }
   }
-  for (let lost of regain) {
-    const card = lost==='sleep' ?  'JD' : (
-      lost==='nopowers' ? 'JH' : (lost==='noskills' && 'JC')
-    )
-    store.dispatch({ type: 'REGAIN', lost })
+  for (let card of laws_cancel) {
     store.dispatch({ type: 'REMOVE_ACTIVE', card })
   }
 
   // no stuff while asleep
-  if (store.getState().ep.sleep) { return }
+  const asleep = jackDiamonds(store.getState().laws.active)
+  if (asleep) { return }
 
   switch(spaces[position]) {
     case 'F':
@@ -408,7 +421,6 @@ const endDeath = () => {
   const { fd: { current }, board: { completed_trip } } = store.getState()
   if (survivesDeath(current, completed_trip)) {
     store.dispatch({ type: 'DISCARD_LAW_HAND' }),
-    store.dispatch({ type: 'CHANGE_BODY' }),
     store.dispatch({ type: 'END_DEATH' })
   } else {
     presentEvent('GAME-OVER')
@@ -436,7 +448,7 @@ export const actions = {
   onTransformEmotions: () => dispatchWithExtras({ type: 'TRANSFORM_EMOTIONS' }),
   onCombineSelectedParts: (selected) => handlePieces({ type: 'COMBINE_PARTS', selected }),
   onAdvanceFoodDiagram: () => dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' }),
-  onChangeBody: () => store.dispatch({ type: 'CHANGE_BODY' }),
+  //onChangeBody: () => store.dispatch({ type: 'CHANGE_BODY' }),
   onDying: () => store.dispatch({ type: 'DEATH' }),
   onRandomLaw: () => store.dispatch({
     type: "ONE_BY_RANDOM",

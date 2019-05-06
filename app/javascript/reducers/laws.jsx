@@ -137,7 +137,7 @@ const LAW_CARDS = [
     "text": "MECHANICAL LIFE:\nSTAY ASLEEP FOR\n21 SPACES.",
     "actions": [
       {type: 'ACTIVE_LAW', card: 18},
-      {type: 'MECHANICAL', lost: 'sleep', for: 21},
+      {type: 'MECHANICAL', card: 'JD', for: 21},
     ]
   },
   {
@@ -294,7 +294,7 @@ const LAW_CARDS = [
     "text": "MECHANICAL LIFE:\nLOSE YOUR SKILLS\nFOR 37 SPACES.",
     "actions": [
       {type: 'ACTIVE_LAW', card: 40},
-      {type: 'MECHANICAL', lost: 'noskills', for: 37},
+      {type: 'MECHANICAL', card: 'JC', for: 37},
     ]
   },
   {
@@ -429,7 +429,7 @@ const LAW_CARDS = [
     "text": "MECHANICAL LIFE:\nLOSE YOUR POWERS\nFOR 33 SPACES.",
     "actions": [
       {type: 'ACTIVE_LAW', card: 58},
-      {type: 'MECHANICAL', lost: 'nopowers', for: 33},
+      {type: 'MECHANICAL', card: 'JH', for: 33},
     ]
   },
   {
@@ -634,6 +634,9 @@ export const selectedLaws = (cards) => filter(cards, 'selected')
 export const selectedPlayedLaws = (cards) => filter(cards, {'selected': true, 'played': true})
 export const unobeyedLaws = (cards) => filter(cards, c => !c.obeyed)
 export const hasnamuss = (active) => active.map(a => a.index).includes(84)
+export const jackDiamonds = (active) => active.map(a => a.index).includes(18)
+export const jackClubs = (active) => active.map(a => a.index).includes(40)
+export const jackHearts = (active) => active.map(a => a.index).includes(58)
 export const queenHearts = (active) => active.map(a => a.index).includes(59)
 export const tenSpades = (active) => active.map(a => a.index).includes(77)
 
@@ -685,13 +688,13 @@ const drawLawCard = (preDeck, preDisc) => {
 }
 
 const generateLawDeck = () => {
-  const newDeck = LAW_CARDS.slice(40)
+  const newDeck = shuffle(LAW_CARDS.slice(0))
   //let temp = newDeck[1]
-  //newDeck[1] = newDeck[21]
-  //newDeck[21] = temp
+  //newDeck[1] = newDeck[10]
+  //newDeck[10] = temp
   //temp = newDeck[3]
-  //newDeck[3] = newDeck[15]
-  //newDeck[15] = temp
+  //newDeck[2] = newDeck[19]
+  //newDeck[19] = temp
   return newDeck
 }
 

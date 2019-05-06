@@ -2,7 +2,13 @@ import React from 'react'
 import { map } from 'lodash'
 
 import { combinable, playable, selectedCards } from 'reducers/cards'
-import { selectedLaws, selectedPlayedLaws, unobeyedLaws } from 'reducers/laws'
+import {
+  jackDiamonds,
+  jackHearts,
+  selectedLaws,
+  selectedPlayedLaws,
+  unobeyedLaws,
+} from 'reducers/laws'
 import { selectedParts } from 'reducers/being'
 import { TURNS } from 'reducers/board'
 
@@ -11,16 +17,18 @@ const Buttons = ({
   roll,
   being,
   cards,
-  lawCards,
+  laws,
   currentTurn }) => {
+  const asleep = jackDiamonds(laws.active)
+  const nopowers = jackHearts(laws.active)
   const selCards = selectedCards(cards)
-  const selLaws = selectedLaws(lawCards)
+  const selLaws = selectedLaws(laws.in_play)
   const selLawCards = map(selLaws, 'c.card')
   const selParts = selectedParts(being.parts)
   const cardsPlay =
     selCards.length <= being.card_plays &&
     playable(selCards.concat(selLawCards)) &&
-    !selectedPlayedLaws(lawCards).length
+    !selectedPlayedLaws(laws.in_play).length
 
   const buttons = []
   if (currentTurn===TURNS.randomLaw) {
@@ -28,7 +36,7 @@ const Buttons = ({
   } else if (currentTurn===TURNS.choiceLaw) {
     buttons.push(<span key={buttons.length}>Pick a law card:</span>)
   } else {
-    if (unobeyedLaws(lawCards).length) {
+    if (unobeyedLaws(laws.in_play).length) {
       buttons.push(<span key={buttons.length}>* You simply must obey all of the laws in play</span>)
     } else if (currentTurn===TURNS.death) {
       buttons.push(<button key={buttons.length} onClick={actions.onEndDeath}>End Death</button>)
@@ -36,7 +44,7 @@ const Buttons = ({
     } else {
       buttons.push(<button key={buttons.length} onClick={actions.onRollClick}>Roll Dice</button>)
     }
-    if (!being.sleep && !being.nopowers && being[combinable(selParts)]) {
+    if (!asleep && !nopowers && being[combinable(selParts)]) {
       buttons.push(
         <button
           key={buttons.length}
@@ -45,7 +53,7 @@ const Buttons = ({
         </button>
       )
     }
-    if (!being.sleep && cardsPlay) {
+    if (!asleep && cardsPlay) {
       buttons.push(
         <button
           key={buttons.length}

@@ -9,10 +9,10 @@ const TestButtons = ({
   actions,
   parts,
   cards,
-  lawCards
+  laws
 }) => {
   const selCards = selectedCards(cards)
-  const selLaws = selectedLaws(lawCards)
+  const selLaws = selectedLaws(laws.in_play)
   const selParts = selectedParts(parts)
   const selLawCards = map(selLaws, 'c.card')
   return (
@@ -30,7 +30,7 @@ const TestButtons = ({
         <button onClick={() => { actions.onCombineSelectedParts(selParts)} }>Combine Parts</button> }
       { playable(selCards.concat(selLawCards)) && !some(selLaws, 'played') &&
         <button onClick={() => { actions.onPlaySelected(selCards, selLaws)} }>Play Cards</button> }
-      { selectedLaws(lawCards).length===1 &&
+      { selectedLaws(laws.in_play).length===1 &&
         <button onClick={actions.onObeyLaw}>Obey Law</button> }
     </div>
   )

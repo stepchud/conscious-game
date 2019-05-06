@@ -117,9 +117,6 @@ const ep = (
     all_shocks: 0,
     level_of_being: 'MULTIPLICITY',
     new_levels: [],
-    sleep: false,
-    nopowers: false,
-    noskills: false,
     bwe: false,
     ewb: false,
     c12: false,
@@ -239,16 +236,6 @@ const ep = (
       return {
         ...state,
         new_levels: []
-      }
-    case 'MECHANICAL':
-      return {
-        ...state,
-        [action.lost]: true,
-      }
-    case 'REGAIN':
-      return {
-        ...state,
-        [action.lost]: false,
       }
     case 'START_GAME':
       return {

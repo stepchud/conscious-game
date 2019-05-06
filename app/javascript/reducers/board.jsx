@@ -31,26 +31,26 @@ const convertToDeath = (spaces, completed) => {
     deathSpaces.split("").join("")
 }
 
+const InitialState = {
+  dice: sixSides,
+  roll: 0,
+  position: 0,
+  laws_passed: 2,
+  laws_cancel: [],
+  spaces: STARTING_SPACES,
+  death_space: LAST_SPACE,
+  current_turn: TURNS.randomLaw,
+  completed_trip: false,
+}
+
 const board = (
-  state = {
-    dice: sixSides,
-    roll: 0,
-    position: 0,
-    laws_passed: 2,
-    spaces: STARTING_SPACES,
-    death_space: LAST_SPACE,
-    current_turn: TURNS.randomLaw,
-    completed_trip: false,
-  },
+  state = InitialState,
   action
 ) => {
   const {
     roll,
     position,
     dice,
-    sleep_until,
-    nopowers_until,
-    noskills_until,
     death_space,
     laws_passed
   } = state
@@ -75,25 +75,30 @@ const board = (
         ...state,
         death_space: Math.min(death_space, position + action.in)
       }
-    case 'MOVE_ROLL':
+    case 'MOVE_ROLL': {
+      const { current_turn } = state
       const new_position = position + roll >= LAST_SPACE ? LAST_SPACE : position + roll
-      const regain = []
-      if (new_position > sleep_until) { regain.push('sleep') }
-      if (new_position > nopowers_until) { regain.push('nopowers') }
-      if (new_position > noskills_until) { regain.push('noskills') }
-      if (new_position >= death_space) {
-        return {
-          ...state,
-          regain,
-          current_turn: TURNS.death,
-        }
-      } else {
-        return {
-          ...state,
-          regain,
-          position: position + roll,
-        }
+      const nextState = {
+        ...state,
+        position: new_position,
+        current_turn: new_position >= death_space ? TURNS.death : current_turn,
+        laws_cancel: [],
       }
+      if (new_position > state.JD) {
+        delete nextState.JD
+        nextState.laws_cancel.push('JD')
+      }
+      if (new_position > state.JC) {
+        delete nextState.JC
+        nextState.laws_cancel.push('JC')
+      }
+      if (new_position > state.JH) {
+        delete nextState.JH
+        nextState.laws_cancel.push('JH')
+      }
+
+      return nextState
+    }
     case 'PASS_LAW':
       return {
         ...state,
@@ -101,10 +106,10 @@ const board = (
         current_turn: TURNS.randomLaw,
       }
     case 'MECHANICAL':
-      const lost_until = `${action.lost}_until`
+      const card = action.card
       return {
         ...state,
-        [lost_until]: position + action.for,
+        [card]: position + action.for,
       }
     case 'ONE_BY_RANDOM':
       return {
@@ -121,16 +126,21 @@ const board = (
         ...state,
         current_turn: TURNS.death,
       }
-    case 'END_DEATH':
-      const completedTrip = new_position == LAST_SPACE
-      return {
+    case 'END_DEATH': {
+      const completedTrip = position == LAST_SPACE
+      const nextState = {
         ...state,
+        position: completedTrip ? 0 : position,
         completed_trip: completedTrip,
-        regain: ['sleep', 'nopowers', 'noskills'],
         current_turn: TURNS.normal,
         spaces: convertToDeath(state.spaces, completedTrip),
-        death_space: LAST_SPACE
+        death_space: LAST_SPACE,
       }
+      delete nextState.JD
+      delete nextState.JC
+      delete nextState.JH
+      return nextState
+    }
     default:
       return state
   }

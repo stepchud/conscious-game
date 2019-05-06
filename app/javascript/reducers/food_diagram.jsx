@@ -147,20 +147,37 @@ const enterNotes = ({ current, enter, extras }) => {
       extras.push('ASTRAL-BODY')
       current.astral = true
     }
-  } else if (!current.astral && current.food[8]>3) {
-    while(current.food[8]>3) {
-      extras.push('EXTRA-FOOD')
-      current.food[8]--
+  } else {
+    // default limits for (alive XOR astral)
+    let limits = { food: 3, air: 3, impressions: 1 }
+    if (current.alive) {
+      if (current.mental) {
+        limits = { food: 16, air: 12, impressions: 8 }
+      } else if (current.astral) {
+        limits = { food: 11, air: 9, impressions: 5 }
+      }
+    } else {
+      if (current.mental) {
+        limits = { food: 0, air: 0, impressions: 0 }
+      }
     }
-  } else if (!current.astral && current.air[6]>3) {
-    while(current.air[6]>3) {
-      extras.push('EXTRA-AIR')
-      current.air[6]--
+    if (current.food[8]>limits.food) {
+      while(current.food[8]>limits.food) {
+        extras.push('EXTRA-FOOD')
+        current.food[8]--
+      }
     }
-  } else if (!current.astral && current.impressions[4]>1) {
-    while(current.impressions[4]>1) {
-      extras.push('EXTRA-IMPRESSION')
-      current.impressions[4]--
+    if (current.air[6]>limits.air) {
+      while(current.air[6]>limits.air) {
+        extras.push('EXTRA-AIR')
+        current.air[6]--
+      }
+    }
+    if (current.impressions[4]>limits.impressions) {
+      while(current.impressions[4]>limits.impressions) {
+        extras.push('EXTRA-IMPRESSION')
+        current.impressions[4]--
+      }
     }
   }
 
@@ -441,42 +458,46 @@ const foodDiagram = (
       return { current, enter, extras }
     case 'CLEAR_EXTRAS':
       return { current, enter, extras: [] }
-    case 'CHANGE_BODY':
-      let newFood = current.food[8]
-      let newAir = current.air[6]
-      let newImpressions = current.impressions[4]
-      current.food = new Array(9).fill(0)
-      current.air = new Array(7).fill(0)
-      current.impressions = new Array(5).fill(0)
-      if (newFood >= 11 && newAir >= 9 && newImpressions >= 5 && !current.astral) {
-        // already have a mental body, go straight to that
-        newFood -= 8
-        newAir -= 6
-        newImpressions -= 4
-        current.astral = true
-        current.mental = true
-      } else if (current.astral) {
-        current.mental = true
-      } else {
-        current.astral = true
-      }
-      for (let i=0; i < 9; i++) {
-        if (newFood) {
-          current.food[i] = 1
-          newFood--
-        }
-        if (newAir) {
-          current.air[i] = 1
-          newAir--
-        }
-        if (newImpressions) {
-          current.impressions[i] = 1
-          newImpressions--
-        }
-      }
-      return { current, enter, extras }
+    case 'END_TURN':
+      // change body if needed
+      return state
     case 'END_DEATH':
-      current.alive = false
+      if (current.alive) {
+        let foodChips = current.food[8]
+        let airChips = current.air[6]
+        let impChips = current.impressions[4]
+        current.food = new Array(9).fill(0)
+        current.air = new Array(7).fill(0)
+        current.impressions = new Array(5).fill(0)
+        if (foodChips >= 11 && airChips >= 9 && impChips >= 5) {
+          // already have a mental body, go straight to that
+          foodChips -= 8
+          airChips -= 6
+          impChips -= 4
+        }
+        for (let i=0; i < 8; i++) {
+          if (foodChips) {
+            current.food[i] = 1
+            foodChips--
+          }
+        }
+        for (let i=0; i < 6; i++) {
+          if (airChips) {
+            current.air[i] = 1
+            airChips--
+          }
+        }
+        for (let i=0; i < 4; i++) {
+          if (impChips) {
+            current.impressions[i] = 1
+            impChips--
+          }
+        }
+        current.food[8] = foodChips
+        current.air[6] = airChips
+        current.impressions[4] = impChips
+        current.alive = false
+      }
       return { current, enter, extras }
     default:
       return state
