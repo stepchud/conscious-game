@@ -15,7 +15,7 @@ import { TURNS } from 'reducers/board'
 const Buttons = ({
   actions,
   roll,
-  being,
+  ep,
   cards,
   laws,
   currentTurn }) => {
@@ -24,9 +24,9 @@ const Buttons = ({
   const selCards = selectedCards(cards)
   const selLaws = selectedLaws(laws.in_play)
   const selLawCards = map(selLaws, 'c.card')
-  const selParts = selectedParts(being.parts)
+  const selParts = selectedParts(ep.parts)
   const cardsPlay =
-    selCards.length <= being.card_plays &&
+    selCards.length <= ep.card_plays &&
     playable(selCards.concat(selLawCards)) &&
     !selectedPlayedLaws(laws.in_play).length
 
@@ -44,7 +44,7 @@ const Buttons = ({
     } else {
       buttons.push(<button key={buttons.length} onClick={actions.onRollClick}>Roll Dice</button>)
     }
-    if (!asleep && !nopowers && being[combinable(selParts)]) {
+    if (!asleep && !nopowers && ep[combinable(selParts)]) {
       buttons.push(
         <button
           key={buttons.length}

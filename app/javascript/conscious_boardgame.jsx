@@ -24,7 +24,7 @@ const ConsciousBoardgame = () => {
         roll={board.roll}
         cards={cards.hand}
         laws={laws}
-        being={ep}
+        ep={ep}
         currentTurn={board.current_turn}
       />
       <TestButtons

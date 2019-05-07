@@ -90,7 +90,7 @@ const hasNewBody = (fd) => {
       (xFood >= 11 && xAir >= 9 && xImpressions >= 5) :
       (xFood >= 3 && xAir >= 3 && xImpressions >= 1)
   } else {
-    xFood>=3 && xAir>=3 && xImpressions>=1
+    return xFood>=3 && xAir>=3 && xImpressions>=1
   }
 }
 
@@ -458,9 +458,39 @@ const foodDiagram = (
       return { current, enter, extras }
     case 'CLEAR_EXTRAS':
       return { current, enter, extras: [] }
-    case 'END_TURN':
-      // change body if needed
+    case 'END_TURN': {
+      if (!current.alive && current.mental && current.food[8]) {
+        // change body if needed
+        let foodChips = current.food[8]
+        let airChips = current.air[6]
+        let impChips = current.impressions[4]
+        current.food = new Array(9).fill(0)
+        current.air = new Array(7).fill(0)
+        current.impressions = new Array(5).fill(0)
+        for (let i=0; i < 8; i++) {
+          if (foodChips) {
+            current.food[i] = 1
+            foodChips--
+          }
+        }
+        for (let i=0; i < 6; i++) {
+          if (airChips) {
+            current.air[i] = 1
+            airChips--
+          }
+        }
+        for (let i=0; i < 4; i++) {
+          if (impChips) {
+            current.impressions[i] = 1
+            impChips--
+          }
+        }
+        current.food[8] = foodChips
+        current.air[6] = airChips
+        current.impressions[4] = impChips
+      }
       return state
+    }
     case 'END_DEATH':
       if (current.alive) {
         let foodChips = current.food[8]
