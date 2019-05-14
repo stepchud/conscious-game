@@ -11,7 +11,7 @@ import laws, {
   queenHearts,
   tenSpades
 } from 'reducers/laws'
-import fd, { entering, survivesDeath } from 'reducers/food_diagram'
+import fd, { entering, survivesDeath, allNotes } from 'reducers/food_diagram'
 import ep, { rollOptions } from 'reducers/being'
 
 const presentEvent = (event) => {
@@ -151,6 +151,10 @@ const presentEvent = (event) => {
       alert('Game over :( ... nothing to do but try again.')
       location.reload()
       break
+    case 'I-START-OVER':
+      alert('You won! proudly proclaim "I start over!"')
+      location.reload()
+      break
     default:
       console.warn(`presentEvent unknown event: ${event}`)
   }
@@ -167,6 +171,7 @@ const handleExtras = () => {
 const dispatchWithExtras = (action) => {
   store.dispatch(action)
   handleExtras()
+  handleEndGame()
 }
 
 const handleRollOptions = () => {
@@ -215,6 +220,7 @@ const handlePieces = (action) => {
   // handle new levels of being
   store.getState().ep.new_levels.forEach(level => presentEvent(level))
   store.dispatch({ type: 'CLEAR_NEW_LEVELS' })
+  handleEndGame()
 }
 
 const handleDecay = () => {
@@ -417,6 +423,7 @@ const rollClick = () => {
     default:
   }
 }
+
 const endDeath = () => {
   const { fd: { current }, board: { completed_trip } } = store.getState()
   if (survivesDeath(current, completed_trip)) {
@@ -424,6 +431,13 @@ const endDeath = () => {
     store.dispatch({ type: 'END_DEATH' })
   } else {
     presentEvent('GAME-OVER')
+  }
+}
+
+const handleEndGame = () => {
+  const { fd: { current }, ep: { pieces } } = store.getState()
+  if (pieces[17] > 2 && current.mental && allNotes(current)) {
+    presentEvent('I-START-OVER')
   }
 }
 
@@ -448,7 +462,6 @@ export const actions = {
   onTransformEmotions: () => dispatchWithExtras({ type: 'TRANSFORM_EMOTIONS' }),
   onCombineSelectedParts: (selected) => handlePieces({ type: 'COMBINE_PARTS', selected }),
   onAdvanceFoodDiagram: () => dispatchWithExtras({ type: 'ADVANCE_FOOD_DIAGRAM' }),
-  //onChangeBody: () => store.dispatch({ type: 'CHANGE_BODY' }),
   onDying: () => store.dispatch({ type: 'DEATH' }),
   onRandomLaw: () => store.dispatch({
     type: "ONE_BY_RANDOM",

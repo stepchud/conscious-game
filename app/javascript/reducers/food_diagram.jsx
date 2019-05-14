@@ -100,6 +100,9 @@ export const survivesDeath = (fd, completed_trip) =>
 export const entering = (enter) =>
   _.some([...enter.food, ...enter.air, ...enter.impressions])
 
+export const allNotes = (notes) =>
+  _.every([...notes.food, ...notes.air, ...notes.impressions])
+
 // entering notes move one step of harnel-miaznel
 const enterNotes = ({ current, enter, extras }) => {
   // place empty notes, order doesn't matter here
