@@ -101,7 +101,9 @@ export const entering = (enter) =>
   _.some([...enter.food, ...enter.air, ...enter.impressions])
 
 export const allNotes = (notes) =>
-  _.every([...notes.food, ...notes.air, ...notes.impressions])
+  notes.alive
+  ? notes.food[8]==16 && notes.air[6]==12 && notes.impressions[4]==8
+  : _.every([...notes.food, ...notes.air, ...notes.impressions])
 
 // entering notes move one step of harnel-miaznel
 const enterNotes = ({ current, enter, extras }) => {

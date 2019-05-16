@@ -13,8 +13,23 @@ const LOB = [
   'STEWARD',
   'MASTER',
 ]
-
 const mapParts = (c) => ({ c, selected: false })
+const InitialState = {
+  being_type: sixSides.roll(),
+  parts: PARTS.map(mapParts),
+  pieces: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+  shocks: [],
+  card_plays: 1,
+  transforms: 0,
+  wild_shock: 0,
+  all_shocks: 0,
+  level_of_being: 'MULTIPLICITY',
+  new_levels: [],
+  bwe: false,
+  ewb: false,
+  c12: false,
+}
+
 const shock = (index) =>
   (index < 12) ?
     'SELF-REMEMBER' :
@@ -106,21 +121,7 @@ export const rollOptions = (lob) => {
 }
 
 const ep = (
-  state = {
-    being_type: sixSides.roll(),
-    parts: PARTS.map(mapParts),
-    pieces: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-    shocks: [],
-    card_plays: 1,
-    transforms: 0,
-    wild_shock: 0,
-    all_shocks: 0,
-    level_of_being: 'MULTIPLICITY',
-    new_levels: [],
-    bwe: false,
-    ewb: false,
-    c12: false,
-  },
+  state = InitialState,
   action
 ) => {
   const {
