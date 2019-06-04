@@ -24,12 +24,7 @@ export const Dice = (sides=10, zero=true) => {
 export const tenSides = Dice(10, true)
 export const sixSides = Dice(6, false)
 
-const convertToDeath = (spaces, completed) => {
-  const deathSpaces = spaces.replace(/L/g, '*').replace(/C/g, 'D')
-  return completed ?
-    deathSpaces.split("").reverse().join("") :
-    deathSpaces.split("").join("")
-}
+const convertToDeath = (spaces) => spaces.replace(/L/g, '*').replace(/C/g, 'D')
 
 const InitialState = {
   dice: sixSides,
@@ -77,7 +72,10 @@ const board = (
       }
     case 'MOVE_ROLL': {
       const { current_turn } = state
-      const new_position = position + roll >= LAST_SPACE ? LAST_SPACE : position + roll
+      const { roll_multiplier } = action
+      const new_position = position + (roll*roll_multiplier)  >= LAST_SPACE
+        ? LAST_SPACE
+        : position + (roll*roll_multiplier)
       const nextState = {
         ...state,
         position: new_position,
@@ -127,14 +125,21 @@ const board = (
         current_turn: TURNS.death,
       }
     case 'END_DEATH': {
-      const completedTrip = position == LAST_SPACE
+      const completed_trip = position == LAST_SPACE
+      let spaces = state.spaces
+      if (completed_trip) {
+        spaces = [...spaces].reverse().join('')
+      }
+      if (!action.hasnamuss) {
+        spaces = convertToDeath(spaces)
+      }
       const nextState = {
         ...state,
-        position: completedTrip ? 0 : position,
-        completed_trip: completedTrip,
+        position: completed_trip ? 0 : position,
         current_turn: TURNS.normal,
-        spaces: convertToDeath(state.spaces, completedTrip),
+        spaces,
         death_space: LAST_SPACE,
+        completed_trip,
       }
       delete nextState.JD
       delete nextState.JC

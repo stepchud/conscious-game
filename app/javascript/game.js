@@ -171,7 +171,6 @@ const handleExtras = () => {
 const dispatchWithExtras = (action) => {
   store.dispatch(action)
   handleExtras()
-  handleEndGame()
 }
 
 const handleRollOptions = () => {
@@ -253,16 +252,16 @@ const handleWildSpace = () => {
   while(true) {
     if (confirm('Wild Space! Draw a card?')) {
       store.dispatch({ type: 'DRAW_CARD' })
-      return
+      break
     } else if (confirm('Take impression?')) {
       dispatchWithExtras({ type: 'TAKE_IMPRESSION' })
-      return
+      break
     } else if (confirm('Take air?')) {
       dispatchWithExtras({ type: 'BREATHE_AIR' })
-      return
+      break
     } else if (confirm('Take food?')) {
       dispatchWithExtras({ type: 'EAT_FOOD' })
-      return
+      break
     }
   }
 }
@@ -374,17 +373,21 @@ const handleLawEvents = () => {
   }
   store.dispatch({ type: 'CLEAR_ACTIONS' })
   handleExtras()
+  handleEndGame()
 }
 
-const rollClick = () => {
+const handleRollClick = () => {
   const { position: position_before } = store.getState().board
+  const roll_multiplier = 4 - store.getState().ep.num_brains
+  const { active } = store.getState().laws
+  const asleep = jackDiamonds(active)
   store.dispatch({ type: 'END_TURN' })
   store.dispatch({ type: 'ROLL_DICE' })
   handleRollOptions()
-  store.dispatch({ type: 'MOVE_ROLL' })
+  store.dispatch({ type: 'MOVE_ROLL', roll_multiplier })
   const { position, spaces, laws_cancel } = store.getState().board
   for (let s of spaces.substring(position_before+1, position)) {
-    if (s==='L') {
+    if (s==='L' && !asleep) {
       store.dispatch({ type: 'DRAW_LAW_CARD' })
       store.dispatch({ type: 'PASS_LAW' })
     }
@@ -394,7 +397,6 @@ const rollClick = () => {
   }
 
   // no stuff while asleep
-  const asleep = jackDiamonds(store.getState().laws.active)
   if (asleep) { return }
 
   switch(spaces[position]) {
@@ -422,13 +424,18 @@ const rollClick = () => {
       break;
     default:
   }
+  handleEndGame()
 }
 
 const endDeath = () => {
-  const { fd: { current }, board: { completed_trip } } = store.getState()
-  if (survivesDeath(current, completed_trip)) {
+  const {
+    fd: { current },
+    board: { completed_trip },
+    laws: { active },
+  } = store.getState()
+  if (survivesDeath(current, completed_trip) || hasnamuss(active)) {
     store.dispatch({ type: 'DISCARD_LAW_HAND' }),
-    store.dispatch({ type: 'END_DEATH' })
+    store.dispatch({ type: 'END_DEATH', hasnamuss: hasnamuss(active) })
   } else {
     presentEvent('GAME-OVER')
   }
@@ -442,7 +449,7 @@ const handleEndGame = () => {
 }
 
 export const actions = {
-  onRollClick: rollClick,
+  onRollClick: handleRollClick,
   onEndDeath: endDeath,
   onDrawCard: () => store.dispatch({ type: 'DRAW_CARD' }),
   onDrawLawCard: () => store.dispatch({ type: 'DRAW_LAW_CARD' }),

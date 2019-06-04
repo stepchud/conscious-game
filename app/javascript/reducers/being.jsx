@@ -15,6 +15,7 @@ const LOB = [
 ]
 const mapParts = (c) => ({ c, selected: false })
 const InitialState = {
+  num_brains: 3,
   being_type: sixSides.roll(),
   parts: PARTS.map(mapParts),
   pieces: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -62,6 +63,15 @@ const levelOfBeing = (pieces) => {
     return slyMan > 2 ? 'DEPUTY-STEWARD' : 'MULTIPLICITY'
   }
 }
+
+const numBrains = (roll, hasnamuss) =>
+  !hasnamuss
+    ? 3
+    : roll == 6
+      ? 3
+      : roll > 3
+        ? 2
+        : 1
 
 const beginTurnState = (lob) => {
   switch(lob) {
@@ -170,7 +180,7 @@ const ep = (
       let i = PARTS.indexOf(action.pieces[0])
       pieces[i] += action.pieces[1]
       shocks.push(shock(i))
-      while (pieces[i]>2) {
+      while (pieces[i]>2 && i<PARTS.indexOf('JO')) {
         pieces[i] -= 2 // one goes up, one comes off
         i++
         pieces[i] += 1
@@ -237,6 +247,13 @@ const ep = (
       return {
         ...state,
         new_levels: []
+      }
+    case 'END_DEATH':
+      const roll = sixSides.roll()
+      return {
+        ...state,
+        being_type: roll,
+        num_brains: numBrains(roll, action.hasnamuss)
       }
     case 'START_GAME':
       return {

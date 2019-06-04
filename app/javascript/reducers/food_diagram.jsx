@@ -85,13 +85,15 @@ const hasNewBody = (fd) => {
   let xFood = fd.food[8]
   let xAir = fd.air[6]
   let xImpressions = fd.impressions[4]
+  if (fd.mental) {
+    return false
+  }
   if (fd.alive) {
     return fd.astral ?
       (xFood >= 11 && xAir >= 9 && xImpressions >= 5) :
       (xFood >= 3 && xAir >= 3 && xImpressions >= 1)
-  } else {
-    return xFood>=3 && xAir>=3 && xImpressions>=1
   }
+  return xFood>=3 && xAir>=3 && xImpressions>=1
 }
 
 export const survivesDeath = (fd, completed_trip) =>
@@ -103,7 +105,7 @@ export const entering = (enter) =>
 export const allNotes = (notes) =>
   notes.alive
   ? notes.food[8]==16 && notes.air[6]==12 && notes.impressions[4]==8
-  : _.every([...notes.food, ...notes.air, ...notes.impressions])
+  : _.every(notes.food.slice(0,-1) + notes.air.slice(0,-1) + notes.impressions.slice(0,-1))
 
 // entering notes move one step of harnel-miaznel
 const enterNotes = ({ current, enter, extras }) => {

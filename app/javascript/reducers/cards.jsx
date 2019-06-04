@@ -242,7 +242,8 @@ const cards = (
         for (let i=hand.length; i<7; i++) {
           nextState = drawCard(nextState)
         }
-      } else { // hand.length > 7
+      } else {
+        // hand.length > 7
         let [nextHand, discarded] =  partition(hand, 'selected')
         if (nextHand.length>7) {
           discarded += nextHand.slice(7)
