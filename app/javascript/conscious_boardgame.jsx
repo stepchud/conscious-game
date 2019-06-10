@@ -9,9 +9,7 @@ import { CardHand, LawHand } from 'components/cards'
 import FoodDiagram, { processExtra } from 'components/food'
 import ThreeBrains from 'components/being'
 
-// reducers
-import { TURNS } from 'reducers/board'
-// game store
+import { TURNS } from './constants'
 import store, { actions } from 'game'
 
 const ConsciousBoardgame = () => {

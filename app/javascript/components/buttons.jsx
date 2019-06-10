@@ -10,7 +10,7 @@ import {
   unobeyedLaws,
 } from 'reducers/laws'
 import { selectedParts } from 'reducers/being'
-import { TURNS } from 'reducers/board'
+import { TURNS } from '../constants'
 
 const Buttons = ({
   actions,

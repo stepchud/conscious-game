@@ -7,7 +7,7 @@ import {
   sortBy,
   times,
 } from 'lodash'
-import { Dice } from 'reducers/board'
+import { Dice } from '../constants'
 
 const generateDeck = () => {
   let deck = []
@@ -246,10 +246,10 @@ const cards = (
         // hand.length > 7
         let [nextHand, discarded] =  partition(hand, 'selected')
         if (nextHand.length>7) {
-          discarded += nextHand.slice(7)
+          discarded.push(nextHand.slice(7))
           nextHand = nextHand.slice(0, 7)
         } else if (nextHand.length===0) {
-          discarded += hand.slice(7)
+          discarded.push(hand.slice(7))
           nextHand = hand.slice(0, 7)
         }
         nextState.hand = nextHand

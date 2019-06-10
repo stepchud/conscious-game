@@ -434,7 +434,7 @@ const endDeath = () => {
     laws: { active },
   } = store.getState()
   if (survivesDeath(current, completed_trip) || hasnamuss(active)) {
-    store.dispatch({ type: 'DISCARD_LAW_HAND' }),
+    store.dispatch({ type: 'END_TURN' })
     store.dispatch({ type: 'END_DEATH', hasnamuss: hasnamuss(active) })
   } else {
     presentEvent('GAME-OVER')

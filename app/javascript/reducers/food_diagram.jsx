@@ -7,6 +7,7 @@ const InitialState = {
     impressions: [1,0,0,0,0],
     alive:  true,
     astral: false,
+    astralDiscarded: false,
     mental: false,
   },
   enter: {
@@ -102,10 +103,11 @@ export const survivesDeath = (fd, completed_trip) =>
 export const entering = (enter) =>
   _.some([...enter.food, ...enter.air, ...enter.impressions])
 
-export const allNotes = (notes) =>
-  notes.alive
-  ? notes.food[8]==16 && notes.air[6]==12 && notes.impressions[4]==8
-  : _.every(notes.food.slice(0,-1) + notes.air.slice(0,-1) + notes.impressions.slice(0,-1))
+export const allNotes = (notes) => {
+  return notes.alive
+    ? notes.food[8]==16 && notes.air[6]==12 && notes.impressions[4]==8
+    : _.every(notes.food.slice(0,-1).concat(notes.air.slice(0,-1)).concat(notes.impressions.slice(0,-1)))
+}
 
 // entering notes move one step of harnel-miaznel
 const enterNotes = ({ current, enter, extras }) => {
@@ -164,8 +166,11 @@ const enterNotes = ({ current, enter, extras }) => {
         limits = { food: 11, air: 9, impressions: 5 }
       }
     } else {
+      // dead
       if (current.mental) {
-        limits = { food: 0, air: 0, impressions: 0 }
+        limits = current.astralDiscarded
+          ? { food: 0, air: 0, impressions: 0 }
+          : { food: 8, air: 6, impressions: 4 }
       }
     }
     if (current.food[8]>limits.food) {
@@ -466,7 +471,7 @@ const foodDiagram = (
     case 'CLEAR_EXTRAS':
       return { current, enter, extras: [] }
     case 'END_TURN': {
-      if (!current.alive && current.mental && current.food[8]) {
+      if (!current.alive && current.mental && !current.astralDiscarded) {
         // change body if needed
         let foodChips = current.food[8]
         let airChips = current.air[6]
@@ -495,6 +500,7 @@ const foodDiagram = (
         current.food[8] = foodChips
         current.air[6] = airChips
         current.impressions[4] = impChips
+        current.astralDiscarded = true
       }
       return state
     }

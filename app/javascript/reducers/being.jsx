@@ -1,23 +1,11 @@
 import { map, filter } from 'lodash'
 import { sameSuit, makeNewPart, combinable } from 'reducers/cards'
-import { sixSides } from 'reducers/board'
+import { LOB, PARTS, sixSides } from '../constants'
 
-const PARTS = [
-  "JD","QD","KD","JC","QC","KC",
-  "JH","QH","KH","JS","QS","KS",
-  "AD","AC","AH","AS","XJ","JO",
-]
-const LOB = [
-  'MULTIPLICITY',
-  'DEPUTY-STEWARD',
-  'STEWARD',
-  'MASTER',
-]
-const mapParts = (c) => ({ c, selected: false })
 const InitialState = {
   num_brains: 3,
   being_type: sixSides.roll(),
-  parts: PARTS.map(mapParts),
+  parts: PARTS.map((c) => ({ c, selected: false })),
   pieces: [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
   shocks: [],
   card_plays: 1,

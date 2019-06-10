@@ -1,28 +1,10 @@
 import { map, filter, isEmpty, every, some, isNaN } from 'lodash'
-
-const STARTING_SPACES =
-  '*AFAIFCACFFCIAACFFICAFACCFICFAAFCCLAFICCFAFICAFCC' +
-  'IAACFFICAICAFFICCAAIFCLLCFFIAAICCFIACIFACIAFICAIL' +
-  'FCAACICCFAICFFACICAIFCCFICACFALLCCFACCCFICFCAICCI' +
-  'AFFICAALCCIFACCCIFICAACCICFFCCIAFCCALLCCCAFFACIAF' +
-  'CCIACFACILCAFFCCAIAFCCIACFFICCCAICCFCALLCCAAFCIC*'
-const LAST_SPACE = STARTING_SPACES.length - 1
-export const TURNS = {
-  normal: 'normal',
-  randomLaw: 'random',
-  choiceLaw: 'choice',
-  death: 'death',
-}
-
-export const Dice = (sides=10, zero=true) => {
-  const basis = zero ? 0 : 1
-  const roll = () => Math.floor(Math.random() * sides) + basis
-  const opposite = (value) => sides + basis - value
-
-  return { roll, opposite }
-}
-export const tenSides = Dice(10, true)
-export const sixSides = Dice(6, false)
+import {
+  INITIAL_SPACES,
+  LAST_SPACE,
+  TURNS,
+  sixSides,
+} from '../constants'
 
 const convertToDeath = (spaces) => spaces.replace(/L/g, '*').replace(/C/g, 'D')
 
@@ -32,7 +14,7 @@ const InitialState = {
   position: 0,
   laws_passed: 2,
   laws_cancel: [],
-  spaces: STARTING_SPACES,
+  spaces: INITIAL_SPACES,
   death_space: LAST_SPACE,
   current_turn: TURNS.randomLaw,
   completed_trip: false,
