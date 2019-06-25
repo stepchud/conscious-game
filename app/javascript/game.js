@@ -11,7 +11,7 @@ import laws, {
   queenHearts,
   tenSpades
 } from 'reducers/laws'
-import fd, { entering, survivesDeath, allNotes } from 'reducers/food_diagram'
+import fd, { entering, deathEvent, allNotes } from 'reducers/food_diagram'
 import ep, { rollOptions } from 'reducers/being'
 
 const presentEvent = (event) => {
@@ -150,6 +150,20 @@ const presentEvent = (event) => {
     case 'GAME-OVER':
       alert('Game over :( ... nothing to do but try again.')
       location.reload()
+      break
+    case 'ASTRAL-DEATH':
+      alert('With Kesdjan body you can complete one roundtrip of the board before you perish for good.')
+      store.dispatch({ type: 'END_TURN' })
+      store.dispatch({ type: 'END_DEATH' })
+      break
+    case 'MENTAL-DEATH':
+      alert('With Mental body you are beyond the reach of death. Play on until you complete yourself.')
+      store.dispatch({ type: 'END_TURN' })
+      store.dispatch({ type: 'END_DEATH' })
+      break
+    case 'REINCARNATE':
+      break
+    case 'CAUSAL-DEATH':
       break
     case 'I-START-OVER':
       alert('You won! proudly proclaim "I start over!"')
@@ -433,12 +447,8 @@ const endDeath = () => {
     board: { completed_trip },
     laws: { active },
   } = store.getState()
-  if (survivesDeath(current, completed_trip) || hasnamuss(active)) {
-    store.dispatch({ type: 'END_TURN' })
-    store.dispatch({ type: 'END_DEATH', hasnamuss: hasnamuss(active) })
-  } else {
-    presentEvent('GAME-OVER')
-  }
+  const death = deathEvent(current, completed_trip, hasnamuss(active))
+  presentEvent(death)
 }
 
 const handleEndGame = () => {

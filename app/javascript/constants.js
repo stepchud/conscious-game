@@ -652,7 +652,6 @@ export const LAW_DECK = [
     "text": "HASNAMUSS:\nEXERCISE NO ROLL OPTIONS\nFOR THE DURATION OF YOUR EXISTENCE.",
     "actions": [
       {type: 'ACTIVE_LAW', card: 84},
-      {type: 'HASNAMUSS'},
     ]
   }
 ]

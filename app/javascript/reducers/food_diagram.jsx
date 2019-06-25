@@ -82,23 +82,20 @@ const noteIndex = (note, current) => {
   return [octave, index]
 }
 
-const hasNewBody = (fd) => {
-  let xFood = fd.food[8]
-  let xAir = fd.air[6]
-  let xImpressions = fd.impressions[4]
-  if (fd.mental) {
-    return false
+const hasNewBody = ({ food, air, impressions, astral, mental, alive }) => {
+  if (mental) { return false }
+  if (alive && astral) {
+    return food[8] >= 11 && air[6] >= 9 && impressions[4] >= 5
   }
-  if (fd.alive) {
-    return fd.astral ?
-      (xFood >= 11 && xAir >= 9 && xImpressions >= 5) :
-      (xFood >= 3 && xAir >= 3 && xImpressions >= 1)
-  }
-  return xFood>=3 && xAir>=3 && xImpressions>=1
+  return food[8]>=3 && air[6]>=3 && impressions[4]>=1
 }
 
-export const survivesDeath = (fd, completed_trip) =>
-  fd.mental || (fd.astral && (fd.alive || !completed_trip))
+export const deathEvent = ({ astral, mental }, completed_trip, hasnamuss) => {
+  if (!astral || (!mental && completed_trip && !hasnamuss)) { return 'GAME-OVER' }
+  if (hasnamuss) { return mental ? 'CAUSAL-DEATH' : 'REINCARNATE' }
+  if (mental) { return 'MENTAL-DEATH' }
+  return 'ASTRAL-DEATH'
+}
 
 export const entering = (enter) =>
   _.some([...enter.food, ...enter.air, ...enter.impressions])
