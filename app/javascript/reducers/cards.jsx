@@ -258,6 +258,16 @@ const cards = (
       nextState.hand = nextState.hand.map(card => ({ c: card.c, selected: false }))
       return nextState
     }
+    case 'REINCARNATE': {
+      let nextState = { ...state }
+      const discarded = hand.slice()
+      nextState.hand = []
+      nextState.discards = [...discards, ...discarded]
+      for (let i=0; i<7; i++) {
+        nextState = drawCard(nextState)
+      }
+      return nextState
+    }
     case 'CLEAR_PIECES':
       return {
         ...state,

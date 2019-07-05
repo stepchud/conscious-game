@@ -1,6 +1,6 @@
 import { identity, findIndex, findLastIndex } from 'lodash'
 
-const InitialState = {
+const InitialState = () => ({
   current: {
     food:        [1,1,1,0,0,0,0,0,0],
     air:         [1,1,1,0,0,0,0],
@@ -16,7 +16,7 @@ const InitialState = {
     impressions: [0,0,0,0]
   },
   extras: []
-}
+})
 
 const has6   = (fd) => (fd.food[7] || fd.air[5] || fd.impressions[3])
 const has12  = (fd) => (fd.food[6] || fd.air[4] || fd.impressions[2])
@@ -305,7 +305,7 @@ const enterNotes = ({ current, enter, extras }) => {
 }
 
 const foodDiagram = (
-  state = InitialState,
+  state = InitialState(),
   action
 ) => {
   const {
@@ -539,6 +539,13 @@ const foodDiagram = (
         current.alive = false
       }
       return { current, enter, extras }
+    case 'REINCARNATE': {
+      const next = InitialState()
+      next.current.astral = current.astral
+      next.current.mental = current.mental
+      next.current.astralDiscarded = current.astralDiscarded
+      return next
+    }
     default:
       return state
   }

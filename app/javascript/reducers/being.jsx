@@ -52,14 +52,12 @@ const levelOfBeing = (pieces) => {
   }
 }
 
-const numBrains = (roll, hasnamuss) =>
-  !hasnamuss
+const numBrains = (roll) =>
+  roll == 6
     ? 3
-    : roll == 6
-      ? 3
-      : roll > 3
-        ? 2
-        : 1
+    : roll > 3
+      ? 2
+      : 1
 
 const beginTurnState = (lob) => {
   switch(lob) {
@@ -236,13 +234,17 @@ const ep = (
         ...state,
         new_levels: []
       }
-    case 'END_DEATH':
+    case 'REINCARNATE': {
       const roll = sixSides.roll()
+      const pieces = state.pieces.slice()
+      pieces.fill(0, 0, pieces.length-1)
       return {
         ...state,
         being_type: roll,
-        num_brains: numBrains(roll, action.hasnamuss)
+        num_brains: numBrains(roll),
+        pieces,
       }
+    }
     case 'START_GAME':
       return {
         ...state,

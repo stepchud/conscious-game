@@ -162,12 +162,14 @@ const presentEvent = (event) => {
       store.dispatch({ type: 'END_DEATH' })
       break
     case 'REINCARNATE':
+      store.dispatch({ type: 'REINCARNATE' })
       break
     case 'CAUSAL-DEATH':
+      store.dispatch({ type: 'CAUSAL_DEATH' })
       break
     case 'I-START-OVER':
-      alert('You won! proudly proclaim "I start over!"')
-      location.reload()
+      alert('You won! Proudly proclaim "I start over!"')
+      store.dispatch('START_OVER')
       break
     default:
       console.warn(`presentEvent unknown event: ${event}`)
@@ -447,13 +449,16 @@ const endDeath = () => {
     board: { completed_trip },
     laws: { active },
   } = store.getState()
-  const death = deathEvent(current, completed_trip, hasnamuss(active))
-  presentEvent(death)
+  presentEvent(deathEvent(current, completed_trip, hasnamuss(active)))
 }
 
 const handleEndGame = () => {
-  const { fd: { current }, ep: { pieces } } = store.getState()
-  if (pieces[17] > 2 && current.mental && allNotes(current)) {
+  const {
+    fd: { current },
+    ep: { pieces },
+    laws: { active },
+  } = store.getState()
+  if (pieces[17] > 2 && current.mental && allNotes(current) && !hasnamuss(active)) {
     presentEvent('I-START-OVER')
   }
 }

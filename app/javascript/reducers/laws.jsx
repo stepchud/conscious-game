@@ -1,4 +1,13 @@
-import { each, map, filter, reject, shuffle, some } from 'lodash'
+import {
+  each,
+  map,
+  filter,
+  reject,
+  shuffle,
+  some,
+  indexOf,
+  partition,
+} from 'lodash'
 
 import {
   selectedCards,
@@ -29,18 +38,19 @@ const activeKings = (active) => map(
   lawAtIndex
 )
 const isLawCard = (card) => {
-  if (card == '10S') {
-    return (law) => law.index == 77
-  } else if (card == 'QH') {
-    return (law) => law.index == 59
-  } else if (card == 'JD') {
+  if (card == 'JD') {
     return (law) => law.index == 18
   } else if (card == 'JC') {
     return (law) => law.index == 40
   } else if (card == 'JH') {
     return (law) => law.index == 58
+  } else if (card == 'QH') {
+    return (law) => law.index == 59
+  } else if (card == '10S') {
+    return (law) => law.index == 77
+  } else if (card == 'JO') {
+    return (law) => law.index == 84
   }
-
 }
 const isLawSuit = (suit) => {
   switch(suit) {
@@ -55,17 +65,18 @@ const isLawSuit = (suit) => {
   }
 }
 
-const drawLawCard = (preDeck, preDisc) => {
-  let deck, discards
-  if (preDeck.length == 0) {
-    deck = shuffle(preDisc)
+const drawLawCard = (state) => {
+  let {
+    deck,
+    discards,
+  } = state
+  if (!deck.length) {
+    deck = shuffle(discards)
     discards = []
-  } else {
-    deck = preDeck
-    discards = preDisc
   }
   return {
-    law: deck[0],
+    ...state,
+    hand: hand.concat({ c: deck[0], selected: false }),
     deck: deck.slice(1),
     discards,
   }
@@ -102,13 +113,7 @@ const laws = (
   } = state
   switch(action.type) {
     case 'DRAW_LAW_CARD': {
-      const { law, deck: nextDeck, discards: nextDiscards } = drawLawCard(deck, discards)
-      return {
-        ...state,
-        deck: nextDeck,
-        discards: nextDiscards,
-        hand: hand.concat({ c: law, selected: false }),
-      }
+      return drawLawCard(state)
     }
     case 'START_GAME':
       const newDeck = generateLawDeck()
@@ -151,17 +156,17 @@ const laws = (
         hand: hand.filter((v, idx) => idx != chosenIndex),
       }
     case 'OBEY_WITHOUT_ESCAPE': {
-      let draw = drawLawCard(deck, discards)
+      let nextState = drawLawCard(state)
+      let newLaw = nextState.hand.pop()
       if (action.card == '2C') {
         for (let i=1; i<action.being_type; i++) {
-          draw = drawLawCard(draw.deck, draw.discards.concat(draw.law))
+          nextState = drawLawCard(nextState)
+          newLaw = nextState.hand.pop()
         }
       }
       return {
-        ...state,
-        in_play: in_play.concat({ c: draw.law, selected: false, no_escape: action.card }),
-        deck: draw.deck,
-        discards: draw.discards,
+        ...nextState,
+        in_play: in_play.concat({ c: newLaw, selected: false, no_escape: action.card }),
       }
     }
     case 'PLAY_SELECTED':
@@ -253,21 +258,45 @@ const laws = (
         active: filteredActive,
       }
     case 'END_DEATH': {
-      const discarded = map(hand.concat(in_play), 'c')
+      const discarded = map(hand.concat(in_play), 'c').concat(map(active, lawAtIndex))
       return {
         ...state,
         discards: discards.concat(discarded),
         hand: [],
-        in_play: [],
         active: [],
+        in_play: [],
+        actions: [],
       }
     }
-    case 'ROLL_DICE':
+    case 'REINCARNATE': {
+      // discard everything but the active Joker
+      const [nextActive, discardActve] = partition(active, isLawCard('JO'))
+      const discarded = map(hand.concat(in_play), 'c').concat(map(discardActve, lawAtIndex))
+      let nextState = {
+        ...state,
+        discards: discards.concat(discarded),
+        hand: [],
+        active: nextActive,
+        in_play: [],
+        actions: [],
+      }
+      for (let i=0; i<3; i++) {
+        nextState = drawLawCard(nextState)
+      }
+      return nextState
+    }
+    case 'ROLL_DICE': {
+      // don't discard active laws (they could be re-drawn)
+      const actives = map(active, 'index')
+      const inPlay = map(in_play, 'c').filter(
+        (l) => !actives.contains(indexOf(LAW_DECK, (ld) => ld.card == l.card))
+      )
       return {
         ...state,
-        discards: discards.concat(map(in_play, 'c')),
+        discards: discards.concat(inPlay),
         in_play: [],
       }
+    }
     case 'CANCEL_ALL_LAWS':
       const newActive = map(filter(active, 'protected'), l => ({ index: l.index, protected: false }))
       const newInPlay = map(in_play, lc => {

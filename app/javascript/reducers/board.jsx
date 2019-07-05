@@ -8,7 +8,7 @@ import {
 
 const convertToDeath = (spaces) => spaces.replace(/L/g, '*').replace(/C/g, 'D')
 
-const InitialState = {
+const InitialState = () => ({
   dice: sixSides,
   roll: 0,
   position: 0,
@@ -18,10 +18,10 @@ const InitialState = {
   death_space: LAST_SPACE,
   current_turn: TURNS.randomLaw,
   completed_trip: false,
-}
+})
 
 const board = (
-  state = InitialState,
+  state = InitialState(),
   action
 ) => {
   const {
@@ -112,9 +112,7 @@ const board = (
       if (completed_trip) {
         spaces = [...spaces].reverse().join('')
       }
-      if (!action.hasnamuss) {
-        spaces = convertToDeath(spaces)
-      }
+      spaces = convertToDeath(spaces)
       const nextState = {
         ...state,
         position: completed_trip ? 0 : position,
@@ -122,6 +120,27 @@ const board = (
         spaces,
         death_space: LAST_SPACE,
         completed_trip,
+      }
+      delete nextState.JD
+      delete nextState.JC
+      delete nextState.JH
+      return nextState
+    }
+    case 'REINCARNATE': {
+      const completed_trip = position == LAST_SPACE
+      let { position, spaces } = state
+      if (completed_trip) {
+        spaces = [...spaces].reverse().join('')
+        position = 0
+      }
+      const nextState = {
+        ...state,
+        spaces,
+        position,
+        current_turn: TURNS.randomLaw,
+        laws_passed: 2,
+        death_space: LAST_SPACE,
+        completed_trip: state.completed_trip || completed_trip,
       }
       delete nextState.JD
       delete nextState.JC
