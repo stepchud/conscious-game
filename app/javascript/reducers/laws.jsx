@@ -67,6 +67,7 @@ const isLawSuit = (suit) => {
 
 const drawLawCard = (state) => {
   let {
+    hand,
     deck,
     discards,
   } = state

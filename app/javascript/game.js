@@ -203,9 +203,13 @@ const presentEvent = (event) => {
     case 'CAUSAL-DEATH':
       startCausalDeath()
       break
+    case 'CLEANSE-HASNAMUSS':
+      alert('You cleansed yourself from being a Hasnamuss!')
+      store.dispatch({ type: 'CLEANSE_HASNAMUSS' })
+      break
     case 'I-START-OVER':
       alert('You won! Proudly proclaim "I start over!"')
-      store.dispatch('START_OVER')
+      location.reload()
       break
     default:
       console.warn(`presentEvent unknown event: ${event}`)
@@ -260,7 +264,11 @@ const handleRollOptions = () => {
 
 const handlePieces = (action) => {
   store.dispatch(action)
-  const pieces = store.getState().cards.pieces
+  const {
+    cards: { pieces },
+    ep: { pieces: epPieces },
+    laws: { active },
+  } = store.getState()
   store.dispatch({ type: 'MAKE_PIECES', pieces })
   store.dispatch({ type: 'CLEAR_PIECES' })
   // handle shocks
@@ -271,6 +279,10 @@ const handlePieces = (action) => {
   // handle new levels of being
   store.getState().ep.new_levels.forEach(level => presentEvent(level))
   store.dispatch({ type: 'CLEAR_NEW_LEVELS' })
+  // check for cleansed hasnamuss
+  if (epPieces[17] > 3 && hasnamuss(active)) {
+    presentEvent('CLEANSE-HASNAMUSS')
+  }
   handleEndGame()
 }
 
