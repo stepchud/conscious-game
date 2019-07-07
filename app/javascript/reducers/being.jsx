@@ -245,6 +245,22 @@ const ep = (
         pieces,
       }
     }
+    case 'CAUSAL_DEATH': {
+      let num_brains
+      if (action.planet == 'REMORSE-OF-CONSCIENCE') {
+        num_brains = 3
+      } else if (action.planet == 'REPENTANCE') {
+        num_brains = 2
+      } else if (action.planet == 'SELF-REPROACH') {
+        num_brains = 1
+      } else {
+        console.log(`Unknown planet: ${action.planet}`)
+      }
+      return {
+        ...state,
+        num_brains,
+      }
+    }
     case 'START_GAME':
       return {
         ...state,

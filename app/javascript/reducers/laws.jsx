@@ -249,7 +249,7 @@ const laws = (
           return c
         }
       } else if (action.card) {
-        // roll option cards
+        // roll option cards & cleansed joker
         filterFunc = isLawCard(action.card)
       }
       const filteredActive = map(reject(active, filterFunc), removeProtected)

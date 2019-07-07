@@ -107,45 +107,36 @@ const board = (
         current_turn: TURNS.death,
       }
     case 'END_DEATH': {
+      const initial = InitialState()
       const completed_trip = position == LAST_SPACE
-      let spaces = state.spaces
+      let { position, spaces } = state.spaces
       if (completed_trip) {
         spaces = [...spaces].reverse().join('')
+        position = 0
       }
-      spaces = convertToDeath(spaces)
-      const nextState = {
-        ...state,
-        position: completed_trip ? 0 : position,
-        current_turn: TURNS.normal,
-        spaces,
-        death_space: LAST_SPACE,
+      return {
+        ...initial,
+        position,
         completed_trip,
+        current_turn: TURNS.normal,
+        spaces: convertToDeath(spaces),
+        laws_passed: 0,
       }
-      delete nextState.JD
-      delete nextState.JC
-      delete nextState.JH
-      return nextState
     }
     case 'REINCARNATE': {
+      const initial = InitialState()
       const completed_trip = position == LAST_SPACE
       let { position, spaces } = state
       if (completed_trip) {
         spaces = [...spaces].reverse().join('')
         position = 0
       }
-      const nextState = {
-        ...state,
-        spaces,
+      return {
+        ...initial,
         position,
-        current_turn: TURNS.randomLaw,
-        laws_passed: 2,
-        death_space: LAST_SPACE,
+        spaces,
         completed_trip: state.completed_trip || completed_trip,
       }
-      delete nextState.JD
-      delete nextState.JC
-      delete nextState.JH
-      return nextState
     }
     default:
       return state

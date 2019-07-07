@@ -1,5 +1,6 @@
 import { combineReducers, createStore} from 'redux'
 
+import { sixSides } from 'constants'
 // reducers
 import board from 'reducers/board'
 import cards, { sameSuit, makeFaceCard } from 'reducers/cards'
@@ -14,6 +15,41 @@ import laws, {
 import fd, { entering, deathEvent, allNotes } from 'reducers/food_diagram'
 import ep, { rollOptions } from 'reducers/being'
 
+const startCausalDeath = () => {
+  const roll1 = sixSides.roll()
+  const roll2 = sixSides.roll()
+  let planet = 'ETERNAL-RETRIBUTION'
+  if (roll1 == 6) {
+    if (roll1 == roll2) {
+      alert("Eternal retribution! There is no escape from this loathesome place.\n"+
+            "You're out of the game backwards.")
+      location.reload()
+      return
+    }
+    planet = 'SELF-REPROACH'
+  } else if (roll1 < 4) {
+    if (roll1 == roll2) {
+      alert(`You're automatically cleansed by rolling double ${roll1}!\n`+
+            `You can continue playing until you complete yourself.`)
+      store.dispatch({ type: 'REMOVE_ACTIVE', card: 'JO' })
+      store.dispatch({ type: 'END_TURN' })
+      store.dispatch({ type: 'END_DEATH' })
+      return
+    } else {
+      planet = 'REMORSE-OF-CONSCIENCE'
+    }
+  } else {
+    if (roll1 == roll2) {
+      planet = 'REMORSE-OF-CONSCIENCE'
+    } else {
+      planet = 'REPENTANCE'
+    }
+  }
+  alert(`The planet of your Hasnamuss is ${planet}!.`)
+  store.dispatch({ type: 'CAUSAL_DEATH', planet })
+  store.dispatch({ type: 'END_TURN' })
+  store.dispatch({ type: 'END_DEATH' })
+}
 const presentEvent = (event) => {
   const active = store.getState().laws.active
   const asleep = jackDiamonds(active)
@@ -165,7 +201,7 @@ const presentEvent = (event) => {
       store.dispatch({ type: 'REINCARNATE' })
       break
     case 'CAUSAL-DEATH':
-      store.dispatch({ type: 'CAUSAL_DEATH' })
+      startCausalDeath()
       break
     case 'I-START-OVER':
       alert('You won! Proudly proclaim "I start over!"')
