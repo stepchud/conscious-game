@@ -29,9 +29,13 @@ const startCausalDeath = () => {
     planet = 'SELF-REPROACH'
   } else if (roll1 < 4) {
     if (roll1 == roll2) {
+      store.dispatch({ type: 'CLEANSE_JOKER' })
+      if (hasnamuss(store.getState().laws.active)) {
+        startCausalDeath()
+        return
+      }
       alert(`You're automatically cleansed by rolling double ${roll1}!\n`+
             `You can continue playing until you complete yourself.`)
-      store.dispatch({ type: 'REMOVE_ACTIVE', card: 'JO' })
       store.dispatch({ type: 'END_TURN' })
       store.dispatch({ type: 'END_DEATH' })
       return
@@ -205,7 +209,7 @@ const presentEvent = (event) => {
       break
     case 'CLEANSE-HASNAMUSS':
       alert('You cleansed yourself from being a Hasnamuss!')
-      store.dispatch({ type: 'CLEANSE_HASNAMUSS' })
+      store.dispatch({ type: 'CLEANSE_JOKER', take_piece: true })
       break
     case 'I-START-OVER':
       alert('You won! Proudly proclaim "I start over!"')

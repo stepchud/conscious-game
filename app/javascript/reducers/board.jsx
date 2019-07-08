@@ -108,8 +108,8 @@ const board = (
       }
     case 'END_DEATH': {
       const initial = InitialState()
+      let { position, spaces } = state
       const completed_trip = position == LAST_SPACE
-      let { position, spaces } = state.spaces
       if (completed_trip) {
         spaces = [...spaces].reverse().join('')
         position = 0

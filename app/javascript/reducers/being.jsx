@@ -52,12 +52,7 @@ const levelOfBeing = (pieces) => {
   }
 }
 
-const numBrains = (roll) =>
-  roll == 6
-    ? 3
-    : roll > 3
-      ? 2
-      : 1
+const numBrains = (roll) => roll == 6 ? 3 : (roll > 3 ? 2 : 1)
 
 const beginTurnState = (lob) => {
   switch(lob) {
@@ -261,6 +256,14 @@ const ep = (
         num_brains,
       }
     }
+    case 'CLEANSE_JOKER':
+      if (action.take_piece && pieces[17] > 0) {
+        pieces[17]--
+      }
+      return {
+        ...state,
+        pieces,
+      }
     case 'START_GAME':
       return {
         ...state,

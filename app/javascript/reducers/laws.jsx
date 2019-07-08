@@ -1,6 +1,8 @@
 import {
   each,
   map,
+  find,
+  compact,
   filter,
   reject,
   shuffle,
@@ -37,6 +39,7 @@ const activeKings = (active) => map(
          filter(active, (c) => [ KD, KC, KH, KS ].includes(c.index)),
   lawAtIndex
 )
+const isProtected = (card) => card.protected && !!card.protected.length
 const isLawCard = (card) => {
   if (card == 'JD') {
     return (law) => law.index == 18
@@ -52,16 +55,16 @@ const isLawCard = (card) => {
     return (law) => law.index == 84
   }
 }
-const isLawSuit = (suit) => {
+const isLawSuit = (suit, law) => {
   switch(suit) {
     case 'D':
-      return (law) => law.index < 22 && law.index != KD && !law.protected
+      return law.index < 22 && law.index != KD
     case 'C':
-      return (law) => law.index >= 22 && law.index < 44 && law.index != KC && !law.protected
+      return law.index >= 22 && law.index < 44 && law.index != KC
     case 'H':
-      return (law) => law.index >= 44 && law.index < 62 && law.index != KH && !law.protected
+      return law.index >= 44 && law.index < 62 && law.index != KH
     case 'S':
-      return (law) => law.index >= 62 && law.index < 83 && law.index != KS && !law.protected
+      return law.index >= 62 && law.index < 83 && law.index != KS
   }
 }
 
@@ -219,7 +222,7 @@ const laws = (
         console.log("no escape!")
         each(
           filter(actions, c => c.type == 'ACTIVE_LAW'),
-          c => c.protected = lawCard.no_escape
+          (c) => c.protected = [lawCard.no_escape, ...(c.protected||[])]
         )
       } else if (some(activeKings(active), (k) => sameSuit(k.card, lawCard.c.card))) {
         console.log("Moon escapes! ", lawCard)
@@ -236,28 +239,44 @@ const laws = (
         ...state,
         active: active.concat({index: action.card, protected: action.protected}),
       }
-    case 'REMOVE_ACTIVE':
-      let filterFunc
-      let removeProtected = unit => unit
+    case 'REMOVE_ACTIVE': {
+      let nextActive
       if (action.suit) {
         // king moon
-        filterFunc = isLawSuit(action.suit)
-        removeProtected = c => {
-          if ((action.suit == 'C' && c.protected == '2C') ||
-              (action.suit == 'S' && c.protected == '2S')) {
-            delete c.protected
-          }
-          return c
-        }
+        nextActive = compact(
+          map(active, (law) => {
+            if (isProtected(law)) {
+              if ((action.suit == 'C' && law.protected[0] == '2C') ||
+                  (action.suit == 'S' && law.protected[0] == '2S')) {
+                law.protected.shift()
+              }
+              return law
+            } else if (isLawSuit(action.suit, law)) {
+              return undefined
+            }
+          })
+        )
       } else if (action.card) {
-        // roll option cards & cleansed joker
-        filterFunc = isLawCard(action.card)
+        // roll option cards
+        nextActive = reject(active, isLawCard(action.card))
       }
-      const filteredActive = map(reject(active, filterFunc), removeProtected)
       return {
         ...state,
-        active: filteredActive,
+        active: nextActive,
       }
+    }
+    case 'CLEANSE_JOKER': {
+      const [jokers, rest] = partition(active, isLawCard('JO'))
+      const joker = jokers[0]
+      if (isProtected(joker)) {
+        joker.protected.shift()
+        rest.push(joker)
+      }
+      return {
+        ...state,
+        active: rest
+      }
+    }
     case 'END_DEATH': {
       const discarded = map(hand.concat(in_play), 'c').concat(map(active, lawAtIndex))
       return {
@@ -271,8 +290,8 @@ const laws = (
     }
     case 'REINCARNATE': {
       // discard everything but the active Joker
-      const [nextActive, discardActve] = partition(active, isLawCard('JO'))
-      const discarded = map(hand.concat(in_play), 'c').concat(map(discardActve, lawAtIndex))
+      const [nextActive, discardActive] = partition(active, isLawCard('JO'))
+      const discarded = map(hand.concat(in_play), 'c').concat(map(discardActive, lawAtIndex))
       let nextState = {
         ...state,
         discards: discards.concat(discarded),
@@ -290,7 +309,7 @@ const laws = (
       // don't discard active laws (they could be re-drawn)
       const actives = map(active, 'index')
       const inPlay = map(in_play, 'c').filter(
-        (l) => !actives.contains(indexOf(LAW_DECK, (ld) => ld.card == l.card))
+        (l) => !actives.includes(indexOf(LAW_DECK, (ld) => ld.card == l.card))
       )
       return {
         ...state,
@@ -299,7 +318,12 @@ const laws = (
       }
     }
     case 'CANCEL_ALL_LAWS':
-      const newActive = map(filter(active, 'protected'), l => ({ index: l.index, protected: false }))
+      // remove first protected
+      const newActive = map(
+        filter(active, isProtected),
+        l => ({ ...l, protected: l.protected.slice(1) })
+      )
+      // remove no_escape property from current in_play, mark others obeyed
       const newInPlay = map(in_play, lc => {
         if (lc.no_escape) {
           delete lc.no_escape

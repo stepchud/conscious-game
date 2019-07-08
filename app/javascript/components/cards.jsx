@@ -1,6 +1,5 @@
 import React from 'react'
-import { map, } from 'lodash'
-
+import { map } from 'lodash'
 import { lawAtIndex } from 'reducers/laws'
 
 export const Card = ({
@@ -19,7 +18,8 @@ const ActiveLawCard = ({
 }) => {
   return (
     <span title={card.text} className='card law'>
-      {card.card}{covered && '*'}
+      {card.card}
+      {covered && covered.length > 0 && `(${covered.join(',')})`}
     </span>
   )
 }
