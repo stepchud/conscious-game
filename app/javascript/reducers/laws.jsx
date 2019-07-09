@@ -170,7 +170,7 @@ const laws = (
       }
       return {
         ...nextState,
-        in_play: in_play.concat({ c: newLaw, selected: false, no_escape: action.card }),
+        in_play: in_play.concat({ ...newLaw, no_escape: action.card }),
       }
     }
     case 'PLAY_SELECTED':
