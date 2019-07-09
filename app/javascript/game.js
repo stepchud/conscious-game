@@ -203,6 +203,8 @@ const presentEvent = (event) => {
       break
     case 'REINCARNATE':
       store.dispatch({ type: 'REINCARNATE' })
+      const { num_brains } = store.getState().ep
+      alert(`You reincarnated as a ${num_brains}-brained being. Each roll multiplies by ${4-num_brains}.`)
       break
     case 'CAUSAL-DEATH':
       startCausalDeath()

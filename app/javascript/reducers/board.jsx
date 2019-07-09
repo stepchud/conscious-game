@@ -20,6 +20,27 @@ const InitialState = () => ({
   completed_trip: false,
 })
 
+const AfterDeath = ({ state, reincarnate }) => {
+  const initial = InitialState()
+  let { position, spaces } = state
+  const just_completed = position == LAST_SPACE
+  if (just_completed) {
+    spaces = [...spaces].reverse().join('')
+    position = 0
+  }
+  if (!reincarnate) {
+    spaces = convertToDeath(spaces)
+  }
+  return {
+    ...initial,
+    position,
+    spaces,
+    current_turn: reincarnate ? TURNS.randomLaw : TURNS.normal,
+    completed_trip: state.completed_trip || just_completed,
+    laws_passed: reincarnate ? 2 : 0,
+  }
+}
+
 const board = (
   state = InitialState(),
   action
@@ -106,38 +127,10 @@ const board = (
         ...state,
         current_turn: TURNS.death,
       }
-    case 'END_DEATH': {
-      const initial = InitialState()
-      let { position, spaces } = state
-      const completed_trip = position == LAST_SPACE
-      if (completed_trip) {
-        spaces = [...spaces].reverse().join('')
-        position = 0
-      }
-      return {
-        ...initial,
-        position,
-        completed_trip,
-        current_turn: TURNS.normal,
-        spaces: convertToDeath(spaces),
-        laws_passed: 0,
-      }
-    }
-    case 'REINCARNATE': {
-      const initial = InitialState()
-      const completed_trip = position == LAST_SPACE
-      let { position, spaces } = state
-      if (completed_trip) {
-        spaces = [...spaces].reverse().join('')
-        position = 0
-      }
-      return {
-        ...initial,
-        position,
-        spaces,
-        completed_trip: state.completed_trip || completed_trip,
-      }
-    }
+    case 'END_DEATH':
+      return AfterDeath({ state, reincarnate: false })
+    case 'REINCARNATE':
+      return AfterDeath({ state, reincarnate: true })
     default:
       return state
   }
