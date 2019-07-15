@@ -192,7 +192,7 @@ export const LAW_DECK = [
     "card": "AD",
     "text": "WALKING TO YOUR CAR DURING\nA THUNDERSTORM AND ZAP,\nYOU ARE HIT BY LIGHTNING:\nINSTANT DEATH!",
     "actions": [
-      {type: 'DEATH_SPACE', in: 0},
+      {type: 'DEATH_NOW'},
       {type: 'ACTIVE_LAW', card: 21},
     ]
   },
@@ -349,8 +349,8 @@ export const LAW_DECK = [
     "card": "AC",
     "text": "BITING YOUR NAILS LEADS\nTO A FORM OF CANCER:\nDEATH COMES IN 41 SPACES!",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 43},
       {type: 'DEATH_SPACE', in: 41},
+      {type: 'ACTIVE_LAW', card: 43},
     ]
   },
   {
@@ -484,8 +484,8 @@ export const LAW_DECK = [
     "card": "AH",
     "text": "AN OLD FAMILY DISEASE\nMANIFESTS IN YOUR BEING:\nDEATH COMES IN 27 SPACES!",
     "actions": [
-      {type: 'ACTIVE_LAW', card: 61},
       {type: 'DEATH_SPACE', in: 27},
+      {type: 'ACTIVE_LAW', card: 61},
     ]
   },
   {
@@ -636,8 +636,8 @@ export const LAW_DECK = [
     "card": "AS",
     "text": "A CRAZED IDENTIFIED MAN\nCLIMBS A TOWER AND\nSHOOTS 17 PEOPLE TO DEATH;\nYOU ARE ONE OF THEM!",
     "actions": [
+      {type: 'DEATH_NOW'},
       {type: 'ACTIVE_LAW', card: 82},
-      {type: 'DEATH_SPACE', in: 0},
     ]
   },
   {

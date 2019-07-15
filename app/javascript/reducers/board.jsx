@@ -73,6 +73,12 @@ const board = (
         ...state,
         death_space: Math.min(death_space, position + action.in)
       }
+    case 'DEATH_NOW':
+      return {
+        ...state,
+        death_space: position,
+        current_turn: TURNS.death,
+      }
     case 'MOVE_ROLL': {
       const { current_turn } = state
       const { roll_multiplier } = action
