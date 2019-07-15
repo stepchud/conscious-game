@@ -25,12 +25,14 @@ const ConsciousBoardgame = () => {
         ep={ep}
         currentTurn={board.current_turn}
       />
+      {/*
       <TestButtons
         actions={actions}
         cards={cards.hand}
         laws={laws}
         parts={ep.parts}
       />
+      */}
       <Board {...board} />
       <CardHand cards={cards.hand} onSelect={actions.onSelectCard} />
       { fd.current.alive && <LawHand
