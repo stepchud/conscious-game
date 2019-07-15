@@ -19,7 +19,7 @@ const ActiveLawCard = ({
   return (
     <span title={card.text} className='card law'>
       {card.card}
-      {covered && covered.length > 0 && `(${covered.join(',')})`}
+      {!!covered.length && `(${covered.join(',')})`}
     </span>
   )
 }

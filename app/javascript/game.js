@@ -10,7 +10,8 @@ import laws, {
   jackClubs,
   jackHearts,
   queenHearts,
-  tenSpades
+  tenSpades,
+  cantChooseLaw,
 } from 'reducers/laws'
 import fd, { entering, deathEvent, allNotes } from 'reducers/food_diagram'
 import ep, { rollOptions } from 'reducers/being'
@@ -186,6 +187,12 @@ const presentEvent = (event) => {
       break
     case 'NOTHING-TO-REMEMBER':
       alert('Nothing to Remember.')
+      break
+    case 'CANT-CHOOSE-DEATH':
+      alert("Can't choose death when there are other options.")
+      break
+    case 'CANT-CHOOSE-HASNAMUSS':
+      alert("Can't choose hasnamuss when there are other options.")
       break
     case 'GAME-OVER':
       alert('Game over :( ... nothing to do but try again.')
@@ -435,6 +442,14 @@ const decayImpression = (notes) => {
   }
 }
 
+const handleChooseLaw = (card) => {
+  const notAnOption =  cantChooseLaw(store.getState().laws, card)
+  if (notAnOption) {
+    presentEvent(notAnOption)
+  } else {
+    store.dispatch({ type: "ONE_BY_CHOICE", card })
+  }
+}
 const handleLawEvents = () => {
   const { being_type } = store.getState().ep
   store.dispatch({ type: 'OBEY_LAW' })
@@ -543,7 +558,7 @@ export const actions = {
     type: "ONE_BY_RANDOM",
     roll: store.getState().board.dice.roll()
   }),
-  onChooseLaw: (card) => store.dispatch({ type: "ONE_BY_CHOICE", card }),
+  onChooseLaw: (card) => handleChooseLaw(card),
 }
 
 const reducers = combineReducers({ board, cards, laws, fd, ep })

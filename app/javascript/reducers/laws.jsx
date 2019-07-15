@@ -34,12 +34,22 @@ export const jackClubs = (active) => active.map(a => a.index).includes(40)
 export const jackHearts = (active) => active.map(a => a.index).includes(58)
 export const queenHearts = (active) => active.map(a => a.index).includes(59)
 export const tenSpades = (active) => active.map(a => a.index).includes(77)
+export const cantChooseLaw = ({ hand }, index) => {
+  const chosen = hand[index].c.card
+  if (isAce(chosen) && find(hand, (c) => !isAce(c.c.card))) {
+    return 'CANT-CHOOSE-DEATH'
+  } else if (isJoker(chosen) && find(hand, (c) => !isAce(c.c.card) && !isJoker(c.c.card))) {
+    return 'CANT-CHOOSE-HASNAMUSS'
+  }
+}
 
 const activeKings = (active) => map(
          filter(active, (c) => [ KD, KC, KH, KS ].includes(c.index)),
   lawAtIndex
 )
-const isProtected = (card) => card.protected && !!card.protected.length
+const isProtected = (card) => !!card.protected.length
+
+// only works with active cards
 const isLawCard = (card) => {
   if (card == 'JD') {
     return (law) => law.index == 18
@@ -67,6 +77,8 @@ const isLawSuit = (suit, law) => {
       return law.index >= 62 && law.index < 83 && law.index != KS
   }
 }
+const isAce = (card) => ['AD','AC','AH','AS'].includes(card)
+const isJoker = (card) => 'JO'===card
 
 const drawLawCard = (state) => {
   let {
@@ -168,9 +180,10 @@ const laws = (
           newLaw = nextState.hand.pop()
         }
       }
+      const no_escape = action.no_escape ? [action.card, ...(action.no_escape)] : [action.card]
       return {
         ...nextState,
-        in_play: in_play.concat({ ...newLaw, no_escape: action.card }),
+        in_play: in_play.concat({ ...newLaw, no_escape }),
       }
     }
     case 'PLAY_SELECTED':
@@ -203,27 +216,20 @@ const laws = (
         return state
       }
 
-      let nextState = {
-        ...state,
-        in_play: map(in_play, (c) => {
-          return c.selected ?
-            {
-              ...c,
-              selected: false,
-              obeyed: true
-            } : {
-              ...c
-            }
-        }),
-      }
+      lawCard.obeyed = true
+      lawCard.selected = false
+      let nextState = { ...state }
 
       const actions = lawCard.c.actions
       if (lawCard.no_escape) {
         console.log("no escape!")
-        each(
-          filter(actions, c => c.type == 'ACTIVE_LAW'),
-          (c) => c.protected = [lawCard.no_escape, ...(c.protected||[])]
-        )
+        each(actions, (action) => {
+          if ('ACTIVE_LAW' == action.type) {
+            action.protected = lawCard.no_escape
+          } else if ('OBEY_WITHOUT_ESCAPE' == action.type) {
+            action.no_escape = lawCard.no_escape
+          }
+        })
       } else if (some(activeKings(active), (k) => sameSuit(k.card, lawCard.c.card))) {
         console.log("Moon escapes! ", lawCard)
         return nextState
@@ -237,7 +243,7 @@ const laws = (
     case 'ACTIVE_LAW':
       return {
         ...state,
-        active: active.concat({index: action.card, protected: action.protected}),
+        active: active.concat({ index: action.card, protected: action.protected||[] }),
       }
     case 'REMOVE_ACTIVE': {
       let nextActive
@@ -323,10 +329,14 @@ const laws = (
         filter(active, isProtected),
         l => ({ ...l, protected: l.protected.slice(1) })
       )
-      // remove no_escape property from current in_play, mark others obeyed
+      // remove first no_escape from current in_play, mark others obeyed
       const newInPlay = map(in_play, lc => {
         if (lc.no_escape) {
-          delete lc.no_escape
+          if (lc.no_escape.length == 1) {
+            delete lc.no_escape
+          } else {
+            lc.no_escape.shift()
+          }
           return lc
         } else {
           return  {
