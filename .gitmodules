@@ -1,0 +1,3 @@
+[submodule "app/javascript"]
+	path = app/javascript
+	url = git@github.com:stepchud/conscious-react.git
